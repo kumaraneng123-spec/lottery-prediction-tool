@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Pattern Analyzer</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .tab-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-button.inactive {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .search-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-type-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-type-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-type-btn.inactive {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .search-type-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            border: 3px solid #764ba2;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .range-info {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .results-header {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 25px;
+        }
+
+        .results-header span {
+            color: #667eea;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-results p {
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 3px solid #764ba2;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-header {
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-date {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .result-count {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .slot-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slot-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .prize-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .match-count {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .numbers-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .number-badge {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-type-buttons {
+                flex-direction: column;
+            }
+
+            .search-type-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Sample lottery data - replace with actual data import
+        // const lotteryData = [
+        //   {
+        //     date: "2024-01-15",
+        //     result: {
+        //       "1st": "1234",
+        //       "2nd": "5678",
+        //       "3rd": "9012",
+        //       "5000": ["3456", "7890"],
+        //       "2000": ["1111", "2222"],
+        //       "1000": ["3333"],
+        //       "500": ["4444", "5555"],
+        //       "200": ["6666"],
+        //       "100": ["7777", "8888", "9999"]
+        //     }
+        //   },
+        //   // Add more sample data as needed
+        // ];
+        let lotteryData = [];
+
+        // Load JSON file
+
+
+        const TrendingUpIcon = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+        );
+
+        const DownloadIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+
+        const LotteryPatternAnalyzer = () => {
+            const [parsedData, setParsedData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [view, setView] = useState('analysis');
+            const [searchType, setSearchType] = useState('prefix');
+            const [searchInput, setSearchInput] = useState('');
+
+            useEffect(() => {
+                const loadData = async () => {
+                    try {
+                        fetch('./lottery-data.json')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Failed to load JSON file');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                lotteryData = data; // assign to variable
+                                console.log('Lottery data loaded:', lotteryData);
+                                setParsedData(lotteryData);
+                                setLoading(false);
+                            })
+                            .catch(error => {
+                                console.error('Error loading JSON:', error);
+                            });
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                        setLoading(false);
+                    }
+                };
+                loadData();
+            }, []);
+
+            const searchByPrefix = useMemo(() => {
+                if (!parsedData || searchInput.length === 0) return [];
+
+                const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                const allDates = [...parsedData];
+                const results = [];
+
+                allDates.forEach(day => {
+                    const matchingNumbersBySlot = {};
+                    slots.forEach(slot => {
+                        const val = day.result?.[slot];
+                        if (!val) return;
+
+                        const nums = Array.isArray(val) ? val : [String(val)];
+                        nums.forEach(num => {
+                            const numStr = String(num).padStart(4, '0');
+                            let isMatch = false;
+
+                            if (searchType === 'prefix') {
+                                const prefix = searchInput.padStart(2, '0');
+                                isMatch = numStr.startsWith(prefix);
+                            } else if (searchType === 'suffix') {
+                                const suffix = searchInput;
+                                isMatch = numStr.endsWith(suffix);
+                            } else if (searchType === 'range') {
+                                const rangePrefix = searchInput.padEnd(3, '0');
+                                const rangeStart = parseInt(rangePrefix + '0');
+                                const rangeEnd = parseInt(rangePrefix + '9');
+                                const numInt = parseInt(numStr);
+                                isMatch = numInt >= rangeStart && numInt <= rangeEnd;
+                            } else if (searchType === 'exact') {
+                                const exactNum = searchInput.padStart(4, '0');
+                                isMatch = numStr === exactNum;
+                            }
+
+                            if (isMatch) {
+                                if (!matchingNumbersBySlot[slot]) {
+                                    matchingNumbersBySlot[slot] = [];
+                                }
+                                matchingNumbersBySlot[slot].push(numStr);
+                            }
+                        });
+                    });
+
+                    if (Object.keys(matchingNumbersBySlot).length > 0) {
+                        results.push({
+                            date: day.date,
+                            numbersBySlot: matchingNumbersBySlot
+                        });
+                    }
+                });
+
+                return results;
+            }, [parsedData, searchInput, searchType]);
+
+            const analyzePatterns = useMemo(() => {
+                if (!parsedData) return { prefixSummary: {}, suffixSummary: {}, futurePriority: [] };
+
+                const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                const allDates = [...parsedData];
+                const prefixMap = {};
+                const suffixMap = {};
+                const numberHistory = {};
+
+                allDates.forEach((day, dayIndex) => {
+                    slots.forEach(slot => {
+                        const val = day.result[slot];
+                        const nums = Array.isArray(val) ? val : [String(val)];
+                        nums.forEach(num => {
+                            const numStr = String(num).padStart(4, '0');
+                            const prefix = numStr.substring(0, 2);
+                            const suffix = parseInt(numStr.substring(2, 4));
+
+                            if (!prefixMap[prefix]) prefixMap[prefix] = { count: 0, days: new Set() };
+                            prefixMap[prefix].count += 1;
+                            prefixMap[prefix].days.add(day.date);
+
+                            if (!suffixMap[suffix]) suffixMap[suffix] = { count: 0, days: new Set() };
+                            suffixMap[suffix].count += 1;
+                            suffixMap[suffix].days.add(day.date);
+
+                            if (!numberHistory[numStr]) numberHistory[numStr] = [];
+                            numberHistory[numStr].push({ date: day.date, dayIndex, prefix, suffix });
+                        });
+                    });
+                });
+
+                const futurePriority = [];
+                Object.keys(numberHistory).forEach(numStr => {
+                    const appearances = numberHistory[numStr];
+                    let lastAppearance = appearances[appearances.length - 1];
+                    let score = allDates.length - lastAppearance.dayIndex;
+                    futurePriority.push({ number: numStr, score });
+                });
+
+                futurePriority.sort((a, b) => b.score - a.score);
+
+                Object.keys(prefixMap).forEach(p => prefixMap[p].days = prefixMap[p].days.size);
+                Object.keys(suffixMap).forEach(s => suffixMap[s].days = suffixMap[s].days.size);
+
+                return { prefixSummary: prefixMap, suffixSummary: suffixMap, futurePriority };
+            }, [parsedData]);
+
+            const downloadAnalysis = () => {
+                const text = [
+                    "=== PREFIX SUMMARY ===",
+                    JSON.stringify(analyzePatterns.prefixSummary, null, 2),
+                    "\n=== SUFFIX SUMMARY ===",
+                    JSON.stringify(analyzePatterns.suffixSummary, null, 2),
+                    "\n=== FUTURE PRIORITY NUMBERS ===",
+                    JSON.stringify(analyzePatterns.futurePriority.slice(0, 50), null, 2)
+                ].join('\n\n');
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'lottery-analysis.txt';
+                a.click();
+            };
+
+            if (loading) return (
+                <div className="loading">
+                    <div className="spinner"></div>
+                    <p className="loading-text">Loading lottery data...</p>
+                </div>
+            );
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>
+                            <TrendingUpIcon />
+                            Lottery Pattern Analyzer
+                        </h1>
+                        <p>Analyze lottery patterns and search winning numbers</p>
+                    </div>
+
+                    <div className="tab-buttons">
+                        <button
+                            onClick={() => setView('analysis')}
+                            className={`tab-button ${view === 'analysis' ? 'active' : 'inactive'}`}
+                        >
+                            Pattern Analysis
+                        </button>
+                        <button
+                            onClick={() => setView('search')}
+                            className={`tab-button ${view === 'search' ? 'active' : 'inactive'}`}
+                        >
+                            Number Search
+                        </button>
+                    </div>
+
+                    {view === 'analysis' && (
+                        <div>
+                            <button onClick={downloadAnalysis} className="download-btn">
+                                <DownloadIcon />
+                                Download Analysis
+                            </button>
+
+                            <div className="card">
+                                <h2 className="section-title">Prefix Summary</h2>
+                                <div className="grid-4">
+                                    {Object.entries(analyzePatterns.prefixSummary).map(([prefix, data]) => (
+                                        <div key={prefix} className="stat-card">
+                                            <div className="number">{prefix}</div>
+                                            <div className="label">{data.count} hits</div>
+                                            <div className="label">{data.days} days</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <h2 className="section-title">Suffix Summary</h2>
+                                <div className="grid-6">
+                                    {Object.entries(analyzePatterns.suffixSummary).map(([suffix, data]) => (
+                                        <div key={suffix} className="stat-card">
+                                            <div className="number">{suffix}</div>
+                                            <div className="label">{data.count} hits</div>
+                                            <div className="label">{data.days} days</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <h2 className="section-title">Future Priority Numbers (Top 50)</h2>
+                                <div className="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Rank</th>
+                                                <th>Number</th>
+                                                <th>Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {analyzePatterns.futurePriority.slice(0, 50).map((n, i) => (
+                                                <tr key={i}>
+                                                    <td>{i + 1}</td>
+                                                    <td style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{n.number}</td>
+                                                    <td>{n.score}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {view === 'search' && (
+                        <div>
+                            <div className="card">
+                                <label className="input-label">Search Type</label>
+                                <div className="search-type-buttons">
+                                    <button
+                                        onClick={() => { setSearchType('prefix'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'prefix' ? 'active' : 'inactive'}`}
+                                    >
+                                        2-Digit Prefix
+                                    </button>
+                                    <button
+                                        onClick={() => { setSearchType('suffix'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'suffix' ? 'active' : 'inactive'}`}
+                                    >
+                                        2/3-Digit Suffix
+                                    </button>
+                                    <button
+                                        onClick={() => { setSearchType('range'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'range' ? 'active' : 'inactive'}`}
+                                    >
+                                        3-Digit Range
+                                    </button>
+                                    <button
+                                        onClick={() => { setSearchType('exact'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'exact' ? 'active' : 'inactive'}`}
+                                    >
+                                        4-Digit Exact
+                                    </button>
+                                </div>
+
+                                <label className="input-label">
+                                    {searchType === 'prefix' && 'Enter 2-Digit Prefix (e.g., 12, 45, 07)'}
+                                    {searchType === 'suffix' && 'Enter 2 or 3-Digit Suffix (e.g., 10, 99, 810)'}
+                                    {searchType === 'range' && 'Enter 3 Digits for Range (e.g., 810 → 8100-8109)'}
+                                    {searchType === 'exact' && 'Enter 4-Digit Number (e.g., 1234, 5678, 0099)'}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={searchInput}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        if (searchType === 'prefix') {
+                                            setSearchInput(val.slice(0, 2));
+                                        } else if (searchType === 'suffix') {
+                                            setSearchInput(val.slice(0, 3));
+                                        } else if (searchType === 'range') {
+                                            setSearchInput(val.slice(0, 3));
+                                        } else if (searchType === 'exact') {
+                                            setSearchInput(val.slice(0, 4));
+                                        }
+                                    }}
+                                    placeholder={
+                                        searchType === 'prefix' ? 'e.g., 12, 45, 07' :
+                                            searchType === 'suffix' ? 'e.g., 10, 99, 810' :
+                                                searchType === 'range' ? 'e.g., 810, 123, 456' :
+                                                    'e.g., 1234, 5678, 0099'
+                                    }
+                                    className="search-input"
+                                    maxLength={searchType === 'prefix' ? 2 : searchType === 'exact' ? 4 : 3}
+                                />
+
+                                {searchType === 'range' && searchInput.length === 3 && (
+                                    <p className="range-info">
+                                        Searching range: {searchInput}0 - {searchInput}9 (10 numbers)
+                                    </p>
+                                )}
+                            </div>
+
+                            {searchInput.length > 0 && (
+                                <div>
+                                    <h2 className="results-header">
+                                        {searchType === 'prefix' && `Results for Prefix "${searchInput.padStart(2, '0')}"`}
+                                        {searchType === 'suffix' && `Results for Suffix "${searchInput}"`}
+                                        {searchType === 'range' && `Results for Range ${searchInput}0-${searchInput}9`}
+                                        {searchType === 'exact' && `Results for Number "${searchInput.padStart(4, '0')}"`}
+                                        <span> ({searchByPrefix.length} dates found)</span>
+                                    </h2>
+
+                                    {searchByPrefix.length === 0 ? (
+                                        <div className="no-results">
+                                            <p>
+                                                {searchType === 'prefix' && `No numbers found with prefix "${searchInput.padStart(2, '0')}"`}
+                                                {searchType === 'suffix' && `No numbers found with suffix "${searchInput}"`}
+                                                {searchType === 'range' && `No numbers found in range ${searchInput}0-${searchInput}9`}
+                                                {searchType === 'exact' && `Number "${searchInput.padStart(4, '0')}" has not appeared in any draws`}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="results-grid">
+                                            {searchByPrefix.map((result, idx) => {
+                                                const totalNumbers = Object.values(result.numbersBySlot).reduce((sum, nums) => sum + nums.length, 0);
+                                                return (
+                                                    <div key={idx} className="result-card">
+                                                        <div className="result-header">
+                                                            <div className="result-date">{result.date}</div>
+                                                            <div className="result-count">{totalNumbers} number{totalNumbers > 1 ? 's' : ''} found</div>
+                                                        </div>
+                                                        <div>
+                                                            {Object.entries(result.numbersBySlot).map(([slot, numbers]) => (
+                                                                <div key={slot} className="slot-card">
+                                                                    <div className="slot-header">
+                                                                        <span className="prize-badge">₹{slot}</span>
+                                                                        <span className="match-count">({numbers.length} match{numbers.length > 1 ? 'es' : ''})</span>
+                                                                    </div>
+                                                                    <div className="numbers-container">
+                                                                        {numbers.map((num, numIdx) => (
+                                                                            <span key={numIdx} className="number-badge">
+                                                                                {num}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<LotteryPatternAnalyzer />, document.getElementById('root'));
+    </script>
+</body>
+
+</html>

@@ -425,28 +425,7 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
 
-        // Sample lottery data - replace with actual data import
-        // const lotteryData = [
-        //   {
-        //     date: "2024-01-15",
-        //     result: {
-        //       "1st": "1234",
-        //       "2nd": "5678",
-        //       "3rd": "9012",
-        //       "5000": ["3456", "7890"],
-        //       "2000": ["1111", "2222"],
-        //       "1000": ["3333"],
-        //       "500": ["4444", "5555"],
-        //       "200": ["6666"],
-        //       "100": ["7777", "8888", "9999"]
-        //     }
-        //   },
-        //   // Add more sample data as needed
-        // ];
         let lotteryData = [];
-
-        // Load JSON file
-
 
         const TrendingUpIcon = () => (
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -584,20 +563,20 @@
                     });
                 });
 
-                const futurePriority = [];
-                Object.keys(numberHistory).forEach(numStr => {
-                    const appearances = numberHistory[numStr];
-                    let lastAppearance = appearances[appearances.length - 1];
-                    let score = allDates.length - lastAppearance.dayIndex;
-                    futurePriority.push({ number: numStr, score });
-                });
+                // const futurePriority = [];
+                // Object.keys(numberHistory).forEach(numStr => {
+                //     const appearances = numberHistory[numStr];
+                //     let lastAppearance = appearances[appearances.length - 1];
+                //     let score = allDates.length - lastAppearance.dayIndex;
+                //     futurePriority.push({ number: numStr, score });
+                // });
 
-                futurePriority.sort((a, b) => b.score - a.score);
+                // futurePriority.sort((a, b) => b.score - a.score);
 
                 Object.keys(prefixMap).forEach(p => prefixMap[p].days = prefixMap[p].days.size);
                 Object.keys(suffixMap).forEach(s => suffixMap[s].days = suffixMap[s].days.size);
 
-                return { prefixSummary: prefixMap, suffixSummary: suffixMap, futurePriority };
+                return { prefixSummary: prefixMap, suffixSummary: suffixMap };
             }, [parsedData]);
 
             const downloadAnalysis = () => {
@@ -606,8 +585,8 @@
                     JSON.stringify(analyzePatterns.prefixSummary, null, 2),
                     "\n=== SUFFIX SUMMARY ===",
                     JSON.stringify(analyzePatterns.suffixSummary, null, 2),
-                    "\n=== FUTURE PRIORITY NUMBERS ===",
-                    JSON.stringify(analyzePatterns.futurePriority.slice(0, 50), null, 2)
+                    // "\n=== FUTURE PRIORITY NUMBERS ===",
+                    // JSON.stringify(analyzePatterns.futurePriority.slice(0, 50), null, 2)
                 ].join('\n\n');
                 const blob = new Blob([text], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
@@ -680,31 +659,7 @@
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-
-                            <div className="card">
-                                <h2 className="section-title">Future Priority Numbers (Top 50)</h2>
-                                <div className="table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Rank</th>
-                                                <th>Number</th>
-                                                <th>Score</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {analyzePatterns.futurePriority.slice(0, 50).map((n, i) => (
-                                                <tr key={i}>
-                                                    <td>{i + 1}</td>
-                                                    <td style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{n.number}</td>
-                                                    <td>{n.score}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            </div>                           
                         </div>
                     )}
 

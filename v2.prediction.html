@@ -54,6 +54,7 @@
             gap: 15px;
             margin-bottom: 30px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .tab-button {
@@ -336,37 +337,84 @@
             border: 2px solid #764ba2;
         }
 
-        .table-container {
-            overflow-x: auto;
+        .prediction-card {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-radius: 15px;
+            padding: 30px;
+            border: 3px solid #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .prediction-number {
+            text-align: center;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #764ba2;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .prediction-reason {
             background: white;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .pattern-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
         }
 
-        thead {
+        .pattern-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        .pattern-digits {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .pattern-digit {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
             font-weight: 700;
-            font-size: 0.95rem;
         }
 
-        tbody tr:hover {
-            background: #f5f5f5;
+        .history-table {
+            margin-top: 30px;
+        }
+
+        .history-row {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 120px 100px 100px 1fr;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-row.header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
         }
 
         .loading {
@@ -415,6 +463,14 @@
             .search-type-btn {
                 width: 100%;
             }
+
+            .history-row {
+                grid-template-columns: 1fr;
+            }
+
+            .prediction-number {
+                font-size: 3rem;
+            }
         }
     </style>
 </head>
@@ -425,28 +481,18 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
 
-        // Sample lottery data - replace with actual data import
-        // const lotteryData = [
-        //   {
-        //     date: "2024-01-15",
-        //     result: {
-        //       "1st": "1234",
-        //       "2nd": "5678",
-        //       "3rd": "9012",
-        //       "5000": ["3456", "7890"],
-        //       "2000": ["1111", "2222"],
-        //       "1000": ["3333"],
-        //       "500": ["4444", "5555"],
-        //       "200": ["6666"],
-        //       "100": ["7777", "8888", "9999"]
-        //     }
-        //   },
-        //   // Add more sample data as needed
-        // ];
         let lotteryData = [];
 
-        // Load JSON file
-
+        const PATTERN_GROUPS = [
+            [0, 1],
+            [0, 4],
+            [0, 4, 8],
+            [0, 4, 5],
+            [1, 3, 5, 7, 9],
+            [0, 2, 6, 8],
+            [1, 3, 7, 9],
+            [8, 5]
+        ];
 
         const TrendingUpIcon = () => (
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -469,6 +515,7 @@
             const [view, setView] = useState('analysis');
             const [searchType, setSearchType] = useState('prefix');
             const [searchInput, setSearchInput] = useState('');
+            const [predictorInput, setPredictorInput] = useState('');
 
             useEffect(() => {
                 const loadData = async () => {
@@ -481,13 +528,14 @@
                                 return response.json();
                             })
                             .then(data => {
-                                lotteryData = data; // assign to variable
+                                lotteryData = data;
                                 console.log('Lottery data loaded:', lotteryData);
                                 setParsedData(lotteryData);
                                 setLoading(false);
                             })
                             .catch(error => {
                                 console.error('Error loading JSON:', error);
+                                setLoading(false);
                             });
                     } catch (error) {
                         console.error('Error loading data:', error);
@@ -552,16 +600,126 @@
                 return results;
             }, [parsedData, searchInput, searchType]);
 
+            const predictorAnalysis = useMemo(() => {
+                if (!parsedData || predictorInput.length !== 3) return null;
+
+                const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                const allDates = [...parsedData];
+                const rangePrefix = predictorInput;
+                const rangeStart = parseInt(rangePrefix + '0');
+                const rangeEnd = parseInt(rangePrefix + '9');
+
+                const matchingResults = [];
+
+                allDates.forEach(day => {
+                    slots.forEach(slot => {
+                        const val = day.result?.[slot];
+                        if (!val) return;
+
+                        const nums = Array.isArray(val) ? val : [String(val)];
+                        nums.forEach(num => {
+                            const numStr = String(num).padStart(4, '0');
+                            const numInt = parseInt(numStr);
+
+                            if (numInt >= rangeStart && numInt <= rangeEnd) {
+                                matchingResults.push({
+                                    date: day.date,
+                                    number: numStr,
+                                    lastDigit: parseInt(numStr[3]),
+                                    slot: slot
+                                });
+                            }
+                        });
+                    });
+                });
+
+                matchingResults.sort((a, b) => {
+                    const dateA = new Date(a.date.split('-').reverse().join('-'));
+                    const dateB = new Date(b.date.split('-').reverse().join('-'));
+                    return dateB - dateA;
+                });
+
+                const lastDigits = matchingResults.map(r => r.lastDigit);
+                const uniqueLastDigits = [...new Set(lastDigits)];
+
+                let matchedPattern = null;
+                let matchedPatternIndex = -1;
+                let availableDigitsInPattern = [];
+
+                for (let i = 0; i < PATTERN_GROUPS.length; i++) {
+                    const pattern = PATTERN_GROUPS[i];
+                    const digitsInPattern = uniqueLastDigits.filter(d => pattern.includes(d));
+
+                    if (digitsInPattern.length >= 2) {
+                        matchedPattern = pattern;
+                        matchedPatternIndex = i;
+                        availableDigitsInPattern = digitsInPattern;
+                        break;
+                    }
+                }
+
+                let suggestedDigit = null;
+                let suggestionReason = '';
+
+                if (matchedPattern) {
+                    const unusedDigits = matchedPattern.filter(d => !uniqueLastDigits.includes(d));
+
+                    if (unusedDigits.length > 0) {
+                        suggestedDigit = Math.min(...unusedDigits);
+                        suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} detected. Missing digit ${suggestedDigit} in sequence.`;
+                    } else {
+                        const lastUsedDigit = lastDigits[0];
+                        const currentIndex = matchedPattern.indexOf(lastUsedDigit);
+
+                        if (currentIndex !== -1 && currentIndex < matchedPattern.length - 1) {
+                            suggestedDigit = matchedPattern[currentIndex + 1];
+                            suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} - continuing sequence after ${lastUsedDigit}.`;
+                        } else {
+                            suggestedDigit = matchedPattern[0];
+                            suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} - cycling back to start.`;
+                        }
+                    }
+                } else if (uniqueLastDigits.length > 0) {
+                    const sortedDigits = [...uniqueLastDigits].sort((a, b) => a - b);
+                    const lastDigit = lastDigits[0];
+                    const higherDigits = sortedDigits.filter(d => d > lastDigit);
+
+                    if (higherDigits.length > 0) {
+                        suggestedDigit = higherDigits[0];
+                        suggestionReason = `No clear pattern. Suggesting next ascending digit after ${lastDigit}.`;
+                    } else {
+                        suggestedDigit = sortedDigits[0];
+                        suggestionReason = `No clear pattern. Cycling back to smallest observed digit.`;
+                    }
+                } else {
+                    suggestedDigit = 0;
+                    suggestionReason = 'No previous data found. Starting with 0.';
+                }
+
+                const suggestedNumber = predictorInput + suggestedDigit;
+
+                return {
+                    results: matchingResults,
+                    lastDigits: lastDigits,
+                    uniqueLastDigits: uniqueLastDigits,
+                    matchedPattern: matchedPattern,
+                    matchedPatternIndex: matchedPatternIndex,
+                    availableDigitsInPattern: availableDigitsInPattern,
+                    suggestedDigit: suggestedDigit,
+                    suggestedNumber: suggestedNumber,
+                    suggestionReason: suggestionReason
+                };
+            }, [parsedData, predictorInput]);
+
             const analyzePatterns = useMemo(() => {
-                if (!parsedData) return { prefixSummary: {}, suffixSummary: {}, futurePriority: [] };
+                if (!parsedData) return { prefixSummary: {}, suffixSummary: {} };
 
                 const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
                 const allDates = [...parsedData];
                 const prefixMap = {};
                 const suffixMap = {};
-                const numberHistory = {};
 
-                allDates.forEach((day, dayIndex) => {
+                allDates.forEach((day) => {
                     slots.forEach(slot => {
                         const val = day.result[slot];
                         const nums = Array.isArray(val) ? val : [String(val)];
@@ -577,27 +735,14 @@
                             if (!suffixMap[suffix]) suffixMap[suffix] = { count: 0, days: new Set() };
                             suffixMap[suffix].count += 1;
                             suffixMap[suffix].days.add(day.date);
-
-                            if (!numberHistory[numStr]) numberHistory[numStr] = [];
-                            numberHistory[numStr].push({ date: day.date, dayIndex, prefix, suffix });
                         });
                     });
                 });
 
-                const futurePriority = [];
-                Object.keys(numberHistory).forEach(numStr => {
-                    const appearances = numberHistory[numStr];
-                    let lastAppearance = appearances[appearances.length - 1];
-                    let score = allDates.length - lastAppearance.dayIndex;
-                    futurePriority.push({ number: numStr, score });
-                });
-
-                futurePriority.sort((a, b) => b.score - a.score);
-
                 Object.keys(prefixMap).forEach(p => prefixMap[p].days = prefixMap[p].days.size);
                 Object.keys(suffixMap).forEach(s => suffixMap[s].days = suffixMap[s].days.size);
 
-                return { prefixSummary: prefixMap, suffixSummary: suffixMap, futurePriority };
+                return { prefixSummary: prefixMap, suffixSummary: suffixMap };
             }, [parsedData]);
 
             const downloadAnalysis = () => {
@@ -605,9 +750,7 @@
                     "=== PREFIX SUMMARY ===",
                     JSON.stringify(analyzePatterns.prefixSummary, null, 2),
                     "\n=== SUFFIX SUMMARY ===",
-                    JSON.stringify(analyzePatterns.suffixSummary, null, 2),
-                    "\n=== FUTURE PRIORITY NUMBERS ===",
-                    JSON.stringify(analyzePatterns.futurePriority.slice(0, 50), null, 2)
+                    JSON.stringify(analyzePatterns.suffixSummary, null, 2)
                 ].join('\n\n');
                 const blob = new Blob([text], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
@@ -647,6 +790,12 @@
                         >
                             Number Search
                         </button>
+                        <button
+                            onClick={() => setView('predictor')}
+                            className={`tab-button ${view === 'predictor' ? 'active' : 'inactive'}`}
+                        >
+                            Predictor Suggestion
+                        </button>
                     </div>
 
                     {view === 'analysis' && (
@@ -679,30 +828,6 @@
                                             <div className="label">{data.days} days</div>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
-
-                            <div className="card">
-                                <h2 className="section-title">Future Priority Numbers (Top 50)</h2>
-                                <div className="table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Rank</th>
-                                                <th>Number</th>
-                                                <th>Score</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {analyzePatterns.futurePriority.slice(0, 50).map((n, i) => (
-                                                <tr key={i}>
-                                                    <td>{i + 1}</td>
-                                                    <td style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{n.number}</td>
-                                                    <td>{n.score}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -828,6 +953,102 @@
                                             })}
                                         </div>
                                     )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {view === 'predictor' && (
+                        <div>
+                            <div className="card">
+                                <h2 className="section-title">Predictor Suggestion</h2>
+                                <label className="input-label">Enter 3-Digit Number for Prediction</label>
+                                <input
+                                    type="text"
+                                    value={predictorInput}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        setPredictorInput(val.slice(0, 3));
+                                    }}
+                                    placeholder="e.g., 105, 810, 123"
+                                    className="search-input"
+                                    maxLength={3}
+                                />
+                                <p className="range-info">
+                                    Analyzing range: {predictorInput || '___'}0 - {predictorInput || '___'}9
+                                </p>
+                            </div>
+
+                            {predictorInput.length === 3 && predictorAnalysis && (
+                                <div>
+                                    <div className="prediction-card">
+                                        <h2 className="section-title">🎯 Suggested Number</h2>
+                                        <div className="prediction-number">{predictorAnalysis.suggestedNumber}</div>
+                                        <div className="prediction-reason">
+                                            <strong>Reason:</strong> {predictorAnalysis.suggestionReason}
+                                        </div>
+
+                                        {predictorAnalysis.matchedPattern && (
+                                            <div className="pattern-info">
+                                                <div className="pattern-title">Detected Pattern</div>
+                                                <div className="pattern-digits">
+                                                    {predictorAnalysis.matchedPattern.map((digit, idx) => (
+                                                        <span key={idx} className="pattern-digit">{digit}</span>
+                                                    ))}
+                                                </div>
+                                                <div style={{ marginTop: '15px', fontSize: '0.95rem', color: '#666' }}>
+                                                    <strong>Observed last digits:</strong> {predictorAnalysis.availableDigitsInPattern.join(', ')}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="card">
+                                        <h2 className="section-title">Previous Results History</h2>
+                                        {predictorAnalysis.results.length === 0 ? (
+                                            <div className="no-results">
+                                                <p>No previous results found for range {predictorInput}0-{predictorInput}9</p>
+                                            </div>
+                                        ) : (
+                                            <div className="history-table">
+                                                <div className="history-row header">
+                                                    <div>Date</div>
+                                                    <div>Number</div>
+                                                    <div>Last Digit</div>
+                                                    <div>Prize Slot</div>
+                                                </div>
+                                                {predictorAnalysis.results.map((result, idx) => (
+                                                    <div key={idx} className="history-row">
+                                                        <div>{result.date}</div>
+                                                        <div><strong>{result.number}</strong></div>
+                                                        <div style={{ fontSize: '1.3rem', fontWeight: '700', color: '#764ba2' }}>
+                                                            {result.lastDigit}
+                                                        </div>
+                                                        <div>₹{result.slot}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.results.length > 0 && (
+                                            <div className="pattern-info" style={{ marginTop: '20px' }}>
+                                                <div className="pattern-title">Last Digit Sequence</div>
+                                                <div className="pattern-digits">
+                                                    {predictorAnalysis.lastDigits.slice(0, 20).map((digit, idx) => (
+                                                        <span key={idx} className="pattern-digit">{digit}</span>
+                                                    ))}
+                                                    {predictorAnalysis.lastDigits.length > 20 && (
+                                                        <span style={{ padding: '10px', color: '#666' }}>
+                                                            ... and {predictorAnalysis.lastDigits.length - 20} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div style={{ marginTop: '15px', fontSize: '0.95rem', color: '#666' }}>
+                                                    <strong>Unique digits observed:</strong> {predictorAnalysis.uniqueLastDigits.sort((a, b) => a - b).join(', ')}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>

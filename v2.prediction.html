@@ -778,6 +778,331 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* ------------------------ */
+        /* Bulk Predictor Styles */
+        .bulk-input-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .bulk-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 3px solid #764ba2;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .bulk-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .bulk-textarea::placeholder {
+            color: #999;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-btn {
+            background: white;
+            color: #764ba2;
+            padding: 12px 30px;
+            border: 2px solid #764ba2;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #764ba2;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .input-hint {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .bulk-results-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .results-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .results-table th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1rem;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .results-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .results-table tbody tr:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 30%);
+            transform: scale(1.01);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .results-table td {
+            padding: 15px;
+            font-size: 0.95rem;
+        }
+
+        .table-input-number {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #764ba2;
+        }
+
+        .table-suggested-number {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #667eea;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-pattern-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 2px solid #667eea;
+        }
+
+        .table-pattern-none {
+            color: #999;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .table-reason {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .table-history-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .expandable-row {
+            background: #f9f9f9;
+        }
+
+        .expandable-content {
+            padding: 20px;
+        }
+
+        .expand-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .expand-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .mini-history-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mini-history-table th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .mini-history-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.85rem;
+        }
+
+        .mini-history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .mini-history-table tr:hover {
+            background: #f5f7fa;
+        }
+
+        .last-digit-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card .stat-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .stat-label {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #333;
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .bulk-actions {
+                flex-direction: column;
+            }
+
+            .analyze-btn,
+            .clear-btn,
+            .export-btn {
+                width: 100%;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 10px 8px;
+                font-size: 0.85rem;
+            }
+
+            .table-suggested-number {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* -------- */
     </style>
 </head>
 
@@ -841,6 +1166,10 @@
             const [bulkInput, setBulkInput] = useState('');
             const [bulkResults, setBulkResults] = useState(null);
             const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+            const [bulkPredictorInput, setBulkPredictorInput] = useState('');
+            const [bulkPredictorResults, setBulkPredictorResults] = useState([]);
+            const [expandedRows, setExpandedRows] = useState(new Set());
 
             useEffect(() => {
                 const loadData = async () => {
@@ -1219,6 +1548,184 @@
             };
             // -------
 
+            // Bulk Range Predictor
+            const analyzeBulkPredictorNumbers = () => {
+                if (!parsedData || !bulkPredictorInput || !bulkPredictorInput.trim()) {
+                    setBulkPredictorResults([]);
+                    return;
+                }
+
+                const inputNumbers = bulkPredictorInput
+                    .split(/[\n,\s]+/)
+                    .map(n => n.trim())
+                    .filter(n => /^\d{3}$/.test(n));
+
+                if (inputNumbers.length === 0) {
+                    setBulkPredictorResults([]);
+                    return;
+                }
+
+                const uniqueNumbers = [...new Set(inputNumbers)];
+
+                const results = uniqueNumbers.map(num => {
+                    const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                    const allDates = [...parsedData];
+                    const rangePrefix = num;
+                    const rangeStart = parseInt(rangePrefix + '0');
+                    const rangeEnd = parseInt(rangePrefix + '9');
+
+                    const matchingResults = [];
+
+                    allDates.forEach(day => {
+                        if (!day || !day.result) return;
+
+                        slots.forEach(slot => {
+                            const val = day.result?.[slot];
+                            if (!val) return;
+
+                            const nums = Array.isArray(val) ? val : [String(val)];
+                            nums.forEach(n => {
+                                if (!n) return;
+
+                                const numStr = String(n).padStart(4, '0');
+                                const numInt = parseInt(numStr);
+
+                                if (numInt >= rangeStart && numInt <= rangeEnd) {
+                                    matchingResults.push({
+                                        date: day.date || 'N/A',
+                                        number: numStr,
+                                        lastDigit: parseInt(numStr[3]),
+                                        slot: slot
+                                    });
+                                }
+                            });
+                        });
+                    });
+
+                    matchingResults.sort((a, b) => {
+                        try {
+                            const dateA = new Date(a.date.split('-').reverse().join('-'));
+                            const dateB = new Date(b.date.split('-').reverse().join('-'));
+                            return dateB - dateA;
+                        } catch (e) {
+                            return 0;
+                        }
+                    });
+
+                    const lastDigits = matchingResults.map(r => r.lastDigit).filter(d => d !== null && d !== undefined);
+                    const uniqueLastDigits = [...new Set(lastDigits)];
+
+                    let matchedPattern = null;
+                    let matchedPatternIndex = -1;
+                    let availableDigitsInPattern = [];
+
+                    for (let i = 0; i < PATTERN_GROUPS.length; i++) {
+                        const pattern = PATTERN_GROUPS[i];
+                        const digitsInPattern = uniqueLastDigits.filter(d => pattern.includes(d));
+
+                        if (digitsInPattern.length >= 2) {
+                            matchedPattern = pattern;
+                            matchedPatternIndex = i;
+                            availableDigitsInPattern = digitsInPattern;
+                            break;
+                        }
+                    }
+
+                    let suggestedDigit = null;
+                    let suggestionReason = '';
+
+                    if (matchedPattern && matchedPattern.length > 0) {
+                        const unusedDigits = matchedPattern.filter(d => !uniqueLastDigits.includes(d));
+
+                        if (unusedDigits.length > 0) {
+                            suggestedDigit = Math.min(...unusedDigits);
+                            suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} detected. Missing digit ${suggestedDigit}.`;
+                        } else if (lastDigits.length > 0) {
+                            const lastUsedDigit = lastDigits[0];
+                            const currentIndex = matchedPattern.indexOf(lastUsedDigit);
+
+                            if (currentIndex !== -1 && currentIndex < matchedPattern.length - 1) {
+                                suggestedDigit = matchedPattern[currentIndex + 1];
+                                suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} - next after ${lastUsedDigit}.`;
+                            } else {
+                                suggestedDigit = matchedPattern[0];
+                                suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} - cycling back.`;
+                            }
+                        } else {
+                            suggestedDigit = matchedPattern[0];
+                            suggestionReason = `Pattern ${JSON.stringify(matchedPattern)} detected. Starting with first digit.`;
+                        }
+                    } else if (uniqueLastDigits.length > 0 && lastDigits.length > 0) {
+                        const sortedDigits = [...uniqueLastDigits].sort((a, b) => a - b);
+                        const lastDigit = lastDigits[0];
+                        const higherDigits = sortedDigits.filter(d => d > lastDigit);
+
+                        if (higherDigits.length > 0) {
+                            suggestedDigit = higherDigits[0];
+                            suggestionReason = `No pattern. Next ascending digit after ${lastDigit}.`;
+                        } else {
+                            suggestedDigit = sortedDigits[0];
+                            suggestionReason = `No pattern. Cycling to smallest digit.`;
+                        }
+                    } else {
+                        suggestedDigit = 0;
+                        suggestionReason = 'No previous data. Starting with 0.';
+                    }
+
+                    const suggestedNumber = num + (suggestedDigit !== null ? suggestedDigit : 0);
+
+                    return {
+                        inputNumber: num,
+                        suggestedNumber: suggestedNumber,
+                        suggestedDigit: suggestedDigit !== null ? suggestedDigit : 0,
+                        matchedPattern: matchedPattern,
+                        suggestionReason: suggestionReason,
+                        historyCount: matchingResults.length || 0,
+                        history: matchingResults.slice(0, 10) || [],
+                        uniqueLastDigits: uniqueLastDigits || [],
+                        lastDigits: lastDigits || []
+                    };
+                });
+
+                setBulkPredictorResults(results);
+            };
+            const exportBulkPredictorResults = () => {
+                if (!bulkPredictorResults || bulkPredictorResults.length === 0) return;
+
+                try {
+                    const csv = [
+                        ['Input Number', 'Suggested Number', 'Pattern', 'Reason', 'History Count'].join(','),
+                        ...bulkPredictorResults.map(r => [
+                            r.inputNumber || '',
+                            r.suggestedNumber || '',
+                            r.matchedPattern ? JSON.stringify(r.matchedPattern) : 'No Pattern',
+                            `"${r.suggestionReason || ''}"`,
+                            r.historyCount || 0
+                        ].join(','))
+                    ].join('\n');
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bulk-predictions.csv';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error('Error exporting results:', error);
+                }
+            };
+            const toggleRowExpansion = (index) => {
+                const newExpanded = new Set(expandedRows);
+                if (newExpanded.has(index)) {
+                    newExpanded.delete(index);
+                } else {
+                    newExpanded.add(index);
+                }
+                setExpandedRows(newExpanded);
+            };
+            // -------------
+
             if (loading) return (
                 <div className="loading">
                     <div className="spinner"></div>
@@ -1260,6 +1767,12 @@
                             className={`tab-button ${view === 'predictor' ? 'active' : 'inactive'}`}
                         >
                             Predictor Suggestion
+                        </button>
+                        <button
+                            onClick={() => setView('bulkPredictor')}
+                            className={`tab-button ${view === 'bulkPredictor' ? 'active' : 'inactive'}`}
+                        >
+                            Bulk Predictor
                         </button>
                         <button onClick={homePageRedirect} className="tab-button">
                             Go to Home Page
@@ -1647,6 +2160,247 @@
                                     )}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {view === 'bulkPredictor' && (
+                        <div>
+                            <div className="card bulk-input-container">
+                                <h2 className="section-title">Bulk Predictor Analysis</h2>
+                                <label className="input-label">Enter Multiple 3-Digit Numbers</label>
+                                <textarea
+                                    className="bulk-textarea"
+                                    value={bulkPredictorInput}
+                                    onChange={(e) => setBulkPredictorInput(e.target.value)}
+                                    placeholder="Enter 3-digit numbers separated by commas, spaces, or new lines.&#10;Example:&#10;105, 810, 123&#10;456&#10;789, 234, 567"
+                                />
+                                <p className="input-hint">
+                                    💡 Tip: You can paste numbers separated by commas, spaces, or on separate lines.
+                                    Only valid 3-digit numbers will be analyzed.
+                                </p>
+                                <div className="bulk-actions">
+                                    <button
+                                        className="analyze-btn"
+                                        onClick={analyzeBulkPredictorNumbers}
+                                        disabled={!bulkPredictorInput || !bulkPredictorInput.trim()}
+                                    >
+                                        🔍 Analyze All Numbers
+                                    </button>
+                                    <button
+                                        className="clear-btn"
+                                        onClick={() => {
+                                            setBulkPredictorInput('');
+                                            setBulkPredictorResults([]);
+                                            setExpandedRows(new Set());
+                                        }}
+                                    >
+                                        🗑️ Clear All
+                                    </button>
+                                    {bulkPredictorResults && bulkPredictorResults.length > 0 && (
+                                        <button className="export-btn" onClick={exportBulkResults}>
+                                            📥 Export Results (CSV)
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            {bulkPredictorResults && bulkPredictorResults.length > 0 && (
+                                <div>
+                                    <div className="summary-stats">
+                                        <div className="summary-card">
+                                            <div className="stat-number">{bulkPredictorResults.length}</div>
+                                            <div className="stat-label">Numbers Analyzed</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.filter(r => r && r.matchedPattern).length}
+                                            </div>
+                                            <div className="stat-label">Patterns Detected</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.reduce((sum, r) => sum + (r && r.historyCount ? r.historyCount : 0), 0)}
+                                            </div>
+                                            <div className="stat-label">Total Historical Matches</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.length > 0
+                                                    ? Math.round(bulkPredictorResults.reduce((sum, r) => sum + (r && r.historyCount ? r.historyCount : 0), 0) / bulkPredictorResults.length)
+                                                    : 0
+                                                }
+                                            </div>
+                                            <div className="stat-label">Avg Matches Per Number</div>
+                                        </div>
+                                    </div>
+                                    <div className="card bulk-results-table">
+                                        <h2 className="section-title">Prediction Results</h2>
+                                        <div className="table-wrapper">
+                                            <table className="results-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Input</th>
+                                                        <th>Suggested Number</th>
+                                                        <th>Pattern</th>
+                                                        <th>Reason</th>
+                                                        <th>History</th>
+                                                        <th>Details</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {bulkPredictorResults.map((result, index) => {
+                                                        if (!result) return null;
+
+                                                        return (
+                                                            <React.Fragment key={index}>
+                                                                <tr>
+                                                                    <td className="table-input-number">
+                                                                        {result.inputNumber || 'N/A'}
+                                                                    </td>
+                                                                    <td className="table-suggested-number">
+                                                                        {result.suggestedNumber || 'N/A'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {result.matchedPattern ? (
+                                                                            <span className="table-pattern-badge">
+                                                                                {JSON.stringify(result.matchedPattern)}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="table-pattern-none">No Pattern</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="table-reason">
+                                                                        {result.suggestionReason || 'No reason available'}
+                                                                    </td>
+                                                                    <td>
+                                                                        <span className="table-history-count">
+                                                                            {result.historyCount || 0}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>
+                                                                        {result.historyCount > 0 && (
+                                                                            <button
+                                                                                className="expand-btn"
+                                                                                onClick={() => toggleRowExpansion(index)}
+                                                                            >
+                                                                                {expandedRows.has(index) ? '▲ Hide' : '▼ Show'}
+                                                                            </button>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                                {expandedRows.has(index) && result.historyCount > 0 && (
+                                                                    <tr className="expandable-row">
+                                                                        <td colSpan="6">
+                                                                            <div className="expandable-content">
+                                                                                <h4 style={{
+                                                                                    color: '#764ba2',
+                                                                                    marginBottom: '15px',
+                                                                                    fontSize: '1.1rem',
+                                                                                    fontWeight: '700'
+                                                                                }}>
+                                                                                    📊 Detailed History for {result.inputNumber || 'N/A'}
+                                                                                </h4>
+
+                                                                                {result.uniqueLastDigits && result.uniqueLastDigits.length > 0 && (
+                                                                                    <div style={{
+                                                                                        background: 'white',
+                                                                                        padding: '15px',
+                                                                                        borderRadius: '8px',
+                                                                                        marginBottom: '15px',
+                                                                                        border: '2px solid #667eea'
+                                                                                    }}>
+                                                                                        <p style={{ marginBottom: '10px' }}>
+                                                                                            <strong>Unique Last Digits Observed:</strong>
+                                                                                        </p>
+                                                                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                                                            {result.uniqueLastDigits.sort((a, b) => a - b).map((digit, idx) => (
+                                                                                                <span key={idx} className="last-digit-badge">
+                                                                                                    {digit}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {result.history && result.history.length > 0 && (
+                                                                                    <table className="mini-history-table">
+                                                                                        <thead>
+                                                                                            <tr>
+                                                                                                <th>Date</th>
+                                                                                                <th>Number</th>
+                                                                                                <th>Last Digit</th>
+                                                                                                <th>Prize Slot</th>
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody>
+                                                                                            {result.history.map((hist, hIndex) => {
+                                                                                                if (!hist) return null;
+
+                                                                                                return (
+                                                                                                    <tr key={hIndex}>
+                                                                                                        <td>{hist.date || 'N/A'}</td>
+                                                                                                        <td style={{
+                                                                                                            fontWeight: '700',
+                                                                                                            color: '#764ba2',
+                                                                                                            fontSize: '1rem'
+                                                                                                        }}>
+                                                                                                            {hist.number || 'N/A'}
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <span className="last-digit-badge">
+                                                                                                                {hist.lastDigit !== null && hist.lastDigit !== undefined ? hist.lastDigit : '-'}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <span style={{
+                                                                                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                                                                color: 'white',
+                                                                                                                padding: '4px 10px',
+                                                                                                                borderRadius: '5px',
+                                                                                                                fontSize: '0.85rem',
+                                                                                                                fontWeight: '600'
+                                                                                                            }}>
+                                                                                                                ₹{hist.slot || 'N/A'}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                );
+                                                                                            })}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                )}
+
+                                                                                {result.historyCount > 10 && (
+                                                                                    <p style={{
+                                                                                        textAlign: 'center',
+                                                                                        marginTop: '15px',
+                                                                                        color: '#666',
+                                                                                        fontSize: '0.9rem',
+                                                                                        fontStyle: 'italic'
+                                                                                    }}>
+                                                                                        Showing 10 most recent results out of {result.historyCount} total matches
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {bulkPredictorInput && bulkPredictorInput.trim() && (!bulkPredictorResults || bulkPredictorResults.length === 0) && (
+                                <div className="card">
+                                    <div className="no-results">
+                                        <p>Click "Analyze All Numbers" to see predictions for your numbers</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

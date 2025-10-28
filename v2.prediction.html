@@ -761,7 +761,8 @@
                 a.click();
             };
             const homePageRedirect = () => {
-                window.location = './prediction.html'
+                const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+                window.location.href = `${base}.prediction.html`;
             }
             if (loading) return (
                 <div className="loading">

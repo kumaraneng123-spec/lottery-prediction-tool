@@ -597,7 +597,8 @@
             };
 
             const predictionPageRedirect = () => {
-                window.location = './v2.prediction.html'
+                const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+                window.location.href = `${base}v2.prediction.html`;
             }
             if (loading) return (
                 <div className="loading">

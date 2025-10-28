@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lottery 3-digit Analyzer</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="container">
+<header class="topbar">
+<h1>Lottery 3‑Digit Analyzer</h1>
+<div class="controls">
+<input id="input3" type="text" maxlength="3" placeholder="Enter 3-digit number (e.g. 310)" />
+<button id="searchBtn">Search</button>
+<select id="recency" title="Recency weight">
+<option value="7">Prioritize last 7 days</option>
+<option value="14">Prioritize last 14 days</option>
+<option value="30">Prioritize last 30 days</option>
+</select>
+</div>
+</header>
+
+
+<section id="summary" class="summary">
+<div id="matchCount">No search yet.</div>
+<div id="predictionsOverview"></div>
+</section>
+
+
+<section id="cards" class="cards"></section>
+
+
+<footer class="footer">Place your <code>data.json</code> in the same folder and refresh after edits.</footer>
+</main>
+
+
+<script src="script.js"></script>
+</body>
+</html>

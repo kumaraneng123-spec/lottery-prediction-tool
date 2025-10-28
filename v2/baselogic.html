@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lottery Pattern Analyzer</title>
+  <link rel="stylesheet" href="basestyle.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🔮</div>
+      <div>
+        <h1>Lottery Pattern Analyzer</h1>
+        <p class="subtitle">Colorful gradient UI — analyze monthly data & apply your 15-day pattern logic</p>
+      </div>
+    </div>
+    <div class="controls">
+      <input id="fileInput" type="file" accept=".json" />
+      <button id="pasteBtn" class="btn">Paste JSON</button>
+      <button id="analyzeBtn" class="btn primary">Analyze</button>
+      <button id="exportBtn" class="btn">Export Report</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="left-panel">
+      <div class="card gradient-1">
+        <h2>Load data</h2>
+        <p>Upload your `lottery-data.json` (daily results). You can also paste JSON into the editor below.</p>
+        <textarea id="jsonInput" placeholder="Paste JSON here (array of daily results)"></textarea>
+        <div class="tips">Tip: file format should be an array of { "date": "DD-MM-YYYY", "result": { ... } }</div>
+      </div>
+
+      <div class="card gradient-2">
+        <h3>Search a prefix</h3>
+        <div class="search-row">
+          <input id="prefixSearch" placeholder="Enter 3-digit prefix (e.g. 123)" maxlength="3" />
+          <button id="searchBtn" class="btn">Find</button>
+        </div>
+        <div id="searchResult" class="search-result"></div>
+      </div>
+
+      <div class="card gradient-3">
+        <h3>Pattern sets used</h3>
+        <div class="pattern-list" id="patternList"></div>
+        <small class="muted">If a prefix's observed last-digits are fully inside a set, it will be matched and suggestions shown.</small>
+      </div>
+    </section>
+
+    <section class="right-panel">
+      <div id="summary" class="card stats-grid">
+        <div class="stat gradient-4">
+          <div class="stat-title">Total 4-digit numbers</div>
+          <div id="totalNums" class="stat-value">—</div>
+        </div>
+        <div class="stat gradient-5">
+          <div class="stat-title">Unique 3-digit prefixes</div>
+          <div id="uniquePrefixes" class="stat-value">—</div>
+        </div>
+        <div class="stat gradient-6">
+          <div class="stat-title">Prefixes matching patterns</div>
+          <div id="matchedCount" class="stat-value">—</div>
+        </div>
+        <div class="stat gradient-7">
+          <div class="stat-title">Last 15 days matches</div>
+          <div id="windowMatches" class="stat-value">—</div>
+        </div>
+      </div>
+
+      <div id="matchesArea" class="cards-grid"></div>
+
+      <div id="topPrefixesCard" class="card">
+        <h3>Top prefixes by frequency</h3>
+        <div id="topPrefixes" class="top-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>Built with ✨ — suggestions show prefix + candidate last digits for each matched pattern.</div>
+    <div class="small muted">Open the console (F12) for debug info.</div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

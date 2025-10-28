@@ -596,6 +596,9 @@
                 a.click();
             };
 
+            const predictionPageRedirect = () => {
+                window.location = '/v2.prediction.html'
+            }
             if (loading) return (
                 <div className="loading">
                     <div className="spinner"></div>
@@ -612,7 +615,6 @@
                         </h1>
                         <p>Analyze lottery patterns and search winning numbers</p>
                     </div>
-
                     <div className="tab-buttons">
                         <button
                             onClick={() => setView('analysis')}
@@ -625,6 +627,9 @@
                             className={`tab-button ${view === 'search' ? 'active' : 'inactive'}`}
                         >
                             Number Search
+                        </button>
+                        <button onClick={predictionPageRedirect} className="tab-button">
+                            Go to Prediction Calculator Page
                         </button>
                     </div>
 
@@ -659,7 +664,7 @@
                                         </div>
                                     ))}
                                 </div>
-                            </div>                           
+                            </div>
                         </div>
                     )}
 

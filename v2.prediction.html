@@ -759,7 +759,9 @@
                 a.download = 'lottery-analysis.txt';
                 a.click();
             };
-
+            const homePageRedirect = () => {
+                window.location = '/prediction.html'
+            }
             if (loading) return (
                 <div className="loading">
                     <div className="spinner"></div>
@@ -795,6 +797,9 @@
                             className={`tab-button ${view === 'predictor' ? 'active' : 'inactive'}`}
                         >
                             Predictor Suggestion
+                        </button>
+                        <button onClick={homePageRedirect} className="tab-button">
+                            Go to Home Page
                         </button>
                     </div>
 

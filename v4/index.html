@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lottery 3-Digit Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>Lottery 3-Digit Analyzer</h1>
+      <div class="controls">
+        <input id="input3" type="text" maxlength="3" placeholder="Enter 3 digits (e.g. 310)" />
+        <select id="matchMode" title="Match mode">
+          <option value="any">Match anywhere</option>
+          <option value="prefix">Match as prefix</option>
+        </select>
+        <select id="recency" title="Recency weight">
+          <option value="7">Priority: last 7 days</option>
+          <option value="14" selected>Priority: last 14 days</option>
+          <option value="30">Priority: last 30 days</option>
+        </select>
+        <button id="searchBtn">Analyze</button>
+      </div>
+    </header>
+
+    <section id="summary" class="summary">
+      <div id="matchCount">Load your <code>data.json</code> and click Analyze.</div>
+      <div id="predictionsOverview" class="pred-overview"></div>
+    </section>
+
+    <section id="cards" class="cards" aria-live="polite"></section>
+
+    <footer class="footer">
+      <small>Place <code>data.json</code> in the same folder. For local testing run a local server (e.g. <code>python -m http.server</code>).</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

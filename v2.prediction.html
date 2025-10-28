@@ -472,6 +472,312 @@
                 font-size: 3rem;
             }
         }
+
+        /* Analyze bulk range data */
+        /* Bulk Search Styles */
+        .bulk-search-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .bulk-input-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .bulk-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 3px solid #764ba2;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .bulk-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .bulk-textarea::placeholder {
+            color: #999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .bulk-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .bulk-btn.analyze {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .bulk-btn.clear {
+            background: #f44336;
+            color: white;
+        }
+
+        .bulk-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .bulk-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .bulk-info {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .bulk-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(118, 75, 162, 0.2);
+        }
+
+        .bulk-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .bulk-info-label {
+            font-weight: 600;
+            color: #764ba2;
+        }
+
+        .bulk-info-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .bulk-results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .bulk-results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .bulk-results-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #764ba2;
+        }
+
+        .bulk-results-count {
+            font-size: 1.1rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .bulk-table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .bulk-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .bulk-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .bulk-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .bulk-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .bulk-table tbody tr:hover {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e0c3fc 100%);
+            transform: scale(1.01);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .bulk-table td {
+            padding: 15px;
+            font-size: 0.95rem;
+        }
+
+        .bulk-number-cell {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #764ba2;
+        }
+
+        .bulk-range-cell {
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .bulk-date-cell {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .bulk-prize-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .bulk-count-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .bulk-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .bulk-empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .bulk-empty-text {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .bulk-empty-subtext {
+            font-size: 0.95rem;
+            color: #aaa;
+        }
+
+        .bulk-summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .bulk-summary-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .bulk-summary-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .bulk-summary-label {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .export-btn {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .bulk-search-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .bulk-table th,
+            .bulk-table td {
+                padding: 10px 8px;
+                font-size: 0.85rem;
+            }
+
+            .bulk-summary-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -491,7 +797,7 @@
             [5, 8],
             [1, 3, 5, 7, 9],
             [1, 3, 7, 9],
-            [0,2, 6, 8],
+            [0, 2, 6, 8],
             [3, 6]
         ];
 
@@ -510,6 +816,20 @@
             </svg>
         );
 
+        const DownloadTableIcon = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+
+        const SearchIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        );
         const LotteryPatternAnalyzer = () => {
             const [parsedData, setParsedData] = useState(null);
             const [loading, setLoading] = useState(true);
@@ -517,6 +837,10 @@
             const [searchType, setSearchType] = useState('prefix');
             const [searchInput, setSearchInput] = useState('');
             const [predictorInput, setPredictorInput] = useState('');
+            // Add these new state variables after existing useState declarations
+            const [bulkInput, setBulkInput] = useState('');
+            const [bulkResults, setBulkResults] = useState(null);
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
 
             useEffect(() => {
                 const loadData = async () => {
@@ -764,6 +1088,137 @@
                 const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
                 window.location.href = `${base}prediction.html`;
             }
+
+            // Bulk Range Upload Code 
+            const analyzeBulkRanges = () => {
+                if (!parsedData || !bulkInput.trim()) return null;
+
+                setIsAnalyzing(true);
+
+                // Parse input numbers
+                const inputNumbers = bulkInput
+                    .trim()
+                    .split(/[\n,\s]+/)
+                    .map(n => n.trim())
+                    .filter(n => /^\d{3}$/.test(n));
+
+                const uniqueNumbers = [...new Set(inputNumbers)];
+
+                const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                const allDates = [...parsedData];
+                const resultsMap = {};
+
+                uniqueNumbers.forEach(threeDigit => {
+                    const rangeStart = parseInt(threeDigit + '0');
+                    const rangeEnd = parseInt(threeDigit + '9');
+
+                    resultsMap[threeDigit] = [];
+
+                    allDates.forEach(day => {
+                        const matchesInDay = [];
+
+                        slots.forEach(slot => {
+                            const val = day.result?.[slot];
+                            if (!val) return;
+
+                            const nums = Array.isArray(val) ? val : [String(val)];
+                            nums.forEach(num => {
+                                const numStr = String(num).padStart(4, '0');
+                                const numInt = parseInt(numStr);
+
+                                if (numInt >= rangeStart && numInt <= rangeEnd) {
+                                    matchesInDay.push({
+                                        number: numStr,
+                                        slot: slot
+                                    });
+                                }
+                            });
+                        });
+
+                        if (matchesInDay.length > 0) {
+                            resultsMap[threeDigit].push({
+                                date: day.date,
+                                matches: matchesInDay
+                            });
+                        }
+                    });
+                });
+
+                // Flatten results for table display
+                const tableData = [];
+                Object.entries(resultsMap).forEach(([range, dates]) => {
+                    dates.forEach(dateInfo => {
+                        dateInfo.matches.forEach(match => {
+                            tableData.push({
+                                range: range,
+                                rangeDisplay: `${range}0-${range}9`,
+                                number: match.number,
+                                date: dateInfo.date,
+                                slot: match.slot
+                            });
+                        });
+                    });
+                });
+
+                // Sort by date (most recent first)
+                tableData.sort((a, b) => {
+                    const dateA = new Date(a.date.split('-').reverse().join('-'));
+                    const dateB = new Date(b.date.split('-').reverse().join('-'));
+                    return dateB - dateA;
+                });
+
+                // Calculate summary statistics
+                const totalMatches = tableData.length;
+                const uniqueDates = new Set(tableData.map(r => r.date)).size;
+                const rangesWithResults = Object.entries(resultsMap).filter(([_, dates]) => dates.length > 0).length;
+
+                setIsAnalyzing(false);
+
+                return {
+                    tableData: tableData,
+                    resultsMap: resultsMap,
+                    summary: {
+                        totalInputNumbers: uniqueNumbers.length,
+                        rangesWithResults: rangesWithResults,
+                        totalMatches: totalMatches,
+                        uniqueDates: uniqueDates
+                    }
+                };
+            };
+
+            const handleBulkAnalyze = () => {
+                const results = analyzeBulkRanges();
+                setBulkResults(results);
+            };
+
+            const handleBulkClear = () => {
+                setBulkInput('');
+                setBulkResults(null);
+            };
+
+            const exportBulkResults = () => {
+                if (!bulkResults || !bulkResults.tableData.length) return;
+
+                const headers = ['Range', 'Number', 'Date', 'Prize Slot'];
+                const rows = bulkResults.tableData.map(row =>
+                    [row.rangeDisplay, row.number, row.date, `₹${row.slot}`]
+                );
+
+                const csvContent = [
+                    headers.join(','),
+                    ...rows.map(row => row.join(','))
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bulk-range-search-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+            // -------
+
             if (loading) return (
                 <div className="loading">
                     <div className="spinner"></div>
@@ -787,6 +1242,12 @@
                             className={`tab-button ${view === 'analysis' ? 'active' : 'inactive'}`}
                         >
                             Pattern Analysis
+                        </button>
+                        <button
+                            onClick={() => setView('bulkSearch')}
+                            className={`tab-button ${view === 'bulkSearch' ? 'active' : 'inactive'}`}
+                        >
+                            Bulk Range Search
                         </button>
                         <button
                             onClick={() => setView('search')}
@@ -1058,6 +1519,134 @@
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {view === 'bulkSearch' && (
+                        <div>
+                            <div className="bulk-search-container">
+                                <div className="bulk-input-section">
+                                    <h2 className="section-title">Enter 3-Digit Numbers</h2>
+                                    <textarea
+                                        className="bulk-textarea"
+                                        value={bulkInput}
+                                        onChange={(e) => setBulkInput(e.target.value)}
+                                        placeholder="Enter 3-digit numbers (one per line or comma-separated)&#10;&#10;Example:&#10;105&#10;810&#10;123&#10;456&#10;&#10;Or: 105, 810, 123, 456"
+                                    />
+                                    <div className="bulk-actions">
+                                        <button
+                                            onClick={handleBulkAnalyze}
+                                            className="bulk-btn analyze"
+                                            disabled={isAnalyzing || !bulkInput.trim()}
+                                        >
+                                            <SearchIcon />
+                                            {isAnalyzing ? 'Analyzing...' : 'Analyze Ranges'}
+                                        </button>
+                                        <button
+                                            onClick={handleBulkClear}
+                                            className="bulk-btn clear"
+                                            disabled={!bulkInput && !bulkResults}
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+
+                                    {bulkInput.trim() && (
+                                        <div className="bulk-info">
+                                            <div className="bulk-info-item">
+                                                <span className="bulk-info-label">Valid Numbers:</span>
+                                                <span className="bulk-info-value">
+                                                    {bulkInput.trim().split(/[\n,\s]+/).filter(n => /^\d{3}$/.test(n.trim())).length}
+                                                </span>
+                                            </div>
+                                            <div className="bulk-info-item">
+                                                <span className="bulk-info-label">Unique Ranges:</span>
+                                                <span className="bulk-info-value">
+                                                    {new Set(bulkInput.trim().split(/[\n,\s]+/).filter(n => /^\d{3}$/.test(n.trim()))).size}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="bulk-results-section">
+                                    {!bulkResults ? (
+                                        <div className="bulk-empty-state">
+                                            <div className="bulk-empty-icon">🔍</div>
+                                            <div className="bulk-empty-text">No Analysis Yet</div>
+                                            <div className="bulk-empty-subtext">
+                                                Enter 3-digit numbers and click "Analyze Ranges" to see results
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="bulk-results-header">
+                                                <div className="bulk-results-title">Analysis Results</div>
+                                                {bulkResults.tableData.length > 0 && (
+                                                    <button onClick={exportBulkResults} className="export-btn">
+                                                        <DownloadTableIcon />
+                                                        Export CSV
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="bulk-summary-cards">
+                                                <div className="bulk-summary-card">
+                                                    <div className="bulk-summary-number">{bulkResults.summary.totalInputNumbers}</div>
+                                                    <div className="bulk-summary-label">Ranges Searched</div>
+                                                </div>
+                                                <div className="bulk-summary-card">
+                                                    <div className="bulk-summary-number">{bulkResults.summary.rangesWithResults}</div>
+                                                    <div className="bulk-summary-label">Ranges with Matches</div>
+                                                </div>
+                                                <div className="bulk-summary-card">
+                                                    <div className="bulk-summary-number">{bulkResults.summary.totalMatches}</div>
+                                                    <div className="bulk-summary-label">Total Matches</div>
+                                                </div>
+                                                <div className="bulk-summary-card">
+                                                    <div className="bulk-summary-number">{bulkResults.summary.uniqueDates}</div>
+                                                    <div className="bulk-summary-label">Unique Dates</div>
+                                                </div>
+                                            </div>
+
+                                            {bulkResults.tableData.length === 0 ? (
+                                                <div className="bulk-empty-state">
+                                                    <div className="bulk-empty-icon">📭</div>
+                                                    <div className="bulk-empty-text">No Matches Found</div>
+                                                    <div className="bulk-empty-subtext">
+                                                        None of the entered ranges have appeared in past draws
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="bulk-table-container">
+                                                    <table className="bulk-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Range</th>
+                                                                <th>Matched Number</th>
+                                                                <th>Date</th>
+                                                                <th>Prize Slot</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {bulkResults.tableData.map((row, idx) => (
+                                                                <tr key={idx}>
+                                                                    <td className="bulk-range-cell">{row.rangeDisplay}</td>
+                                                                    <td className="bulk-number-cell">{row.number}</td>
+                                                                    <td className="bulk-date-cell">{row.date}</td>
+                                                                    <td>
+                                                                        <span className="bulk-prize-badge">₹{row.slot}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

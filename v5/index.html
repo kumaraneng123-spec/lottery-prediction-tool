@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Pattern Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        let lotteryData = [];
+
+        const PATTERN_GROUPS = [
+            [0, 4, 8, 5, 8],
+            [1, 3, 5],
+            [5, 7, 9],
+            [0, 2, 6, 8]
+        ];
+
+        // Helper function to check if a sequence matches a pattern (forward or reverse)
+        const checkPatternMatch = (sequence, pattern) => {
+            if (sequence.length < 3) return { matched: false };
+
+            // Check forward pattern
+            let forwardMatch = true;
+            let forwardIndices = [];
+            for (let i = 0; i < sequence.length - 1; i++) {
+                const currentIdx = pattern.indexOf(sequence[i]);
+                const nextIdx = pattern.indexOf(sequence[i + 1]);
+
+                if (currentIdx === -1 || nextIdx === -1) {
+                    forwardMatch = false;
+                    break;
+                }
+
+                // Check if they follow the pattern order (with cycling)
+                if (nextIdx !== (currentIdx + 1) % pattern.length) {
+                    forwardMatch = false;
+                    break;
+                }
+                forwardIndices.push(currentIdx);
+            }
+            forwardIndices.push(pattern.indexOf(sequence[sequence.length - 1]));
+
+            if (forwardMatch) {
+                const lastIdx = pattern.indexOf(sequence[sequence.length - 1]);
+                const nextDigit = pattern[(lastIdx + 1) % pattern.length];
+                return { matched: true, direction: 'forward', nextDigit, pattern };
+            }
+
+            // Check reverse pattern
+            let reverseMatch = true;
+            let reverseIndices = [];
+            for (let i = 0; i < sequence.length - 1; i++) {
+                const currentIdx = pattern.indexOf(sequence[i]);
+                const nextIdx = pattern.indexOf(sequence[i + 1]);
+
+                if (currentIdx === -1 || nextIdx === -1) {
+                    reverseMatch = false;
+                    break;
+                }
+
+                // Check if they follow reverse pattern order (with cycling)
+                const expectedNextIdx = (currentIdx - 1 + pattern.length) % pattern.length;
+                if (nextIdx !== expectedNextIdx) {
+                    reverseMatch = false;
+                    break;
+                }
+                reverseIndices.push(currentIdx);
+            }
+            reverseIndices.push(pattern.indexOf(sequence[sequence.length - 1]));
+
+            if (reverseMatch) {
+                const lastIdx = pattern.indexOf(sequence[sequence.length - 1]);
+                const nextDigit = pattern[(lastIdx - 1 + pattern.length) % pattern.length];
+                return { matched: true, direction: 'reverse', nextDigit, pattern };
+            }
+
+            return { matched: false };
+        };
+
+        // Helper function to calculate day gap
+        const calculateDayGap = (date1Str, date2Str) => {
+            try {
+                const [d1, m1, y1] = date1Str.split('-').map(Number);
+                const [d2, m2, y2] = date2Str.split('-').map(Number);
+                const date1 = new Date(y1, m1 - 1, d1);
+                const date2 = new Date(y2, m2 - 1, d2);
+                const diffTime = Math.abs(date2 - date1);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays;
+            } catch (e) {
+                return null;
+            }
+        };
+
+        // Updated predictor analysis function
+        const analyzePredictorWithPriority = (parsedData, inputPrefix) => {
+            if (!parsedData || inputPrefix.length !== 3) return null;
+
+            const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+            const allDates = [...parsedData];
+            const rangeStart = parseInt(inputPrefix + '0');
+            const rangeEnd = parseInt(inputPrefix + '9');
+
+            const matchingResults = [];
+
+            allDates.forEach(day => {
+                slots.forEach(slot => {
+                    const val = day.result?.[slot];
+                    if (!val) return;
+
+                    const nums = Array.isArray(val) ? val : [String(val)];
+                    nums.forEach(num => {
+                        const numStr = String(num).padStart(4, '0');
+                        const numInt = parseInt(numStr);
+
+                        if (numInt >= rangeStart && numInt <= rangeEnd) {
+                            matchingResults.push({
+                                date: day.date,
+                                number: numStr,
+                                lastDigit: parseInt(numStr[3]),
+                                slot: slot
+                            });
+                        }
+                    });
+                });
+            });
+
+            matchingResults.sort((a, b) => {
+                const dateA = new Date(a.date.split('-').reverse().join('-'));
+                const dateB = new Date(b.date.split('-').reverse().join('-'));
+                return dateB - dateA;
+            });
+
+            if (matchingResults.length === 0) {
+                return {
+                    results: [],
+                    suggestedDigit: 0,
+                    suggestedNumber: inputPrefix + '0',
+                    suggestionReason: 'No previous data found. Starting with 0.',
+                    priority: 'default',
+                    lastDigits: [],
+                    uniqueLastDigits: []
+                };
+            }
+
+            // Group results by date
+            const resultsByDate = {};
+            matchingResults.forEach(result => {
+                if (!resultsByDate[result.date]) {
+                    resultsByDate[result.date] = [];
+                }
+                resultsByDate[result.date].push(result.lastDigit);
+            });
+
+            const uniqueDates = Object.keys(resultsByDate).sort((a, b) => {
+                const dateA = new Date(a.split('-').reverse().join('-'));
+                const dateB = new Date(b.split('-').reverse().join('-'));
+                return dateB - dateA;
+            });
+
+            // PRIORITY 1: Check for 3-4 consecutive days pattern match
+            if (uniqueDates.length >= 3) {
+                for (let windowSize = 4; windowSize >= 3; windowSize--) {
+                    if (uniqueDates.length < windowSize) continue;
+
+                    const recentDates = uniqueDates.slice(0, windowSize);
+                    const recentDigits = recentDates.map(date => {
+                        const digits = resultsByDate[date];
+                        return digits[digits.length - 1]; // Most recent digit from that date
+                    });
+
+                    // Check if these are consecutive days
+                    let areConsecutive = true;
+                    for (let i = 0; i < recentDates.length - 1; i++) {
+                        const gap = calculateDayGap(recentDates[i + 1], recentDates[i]);
+                        if (gap !== 1) {
+                            areConsecutive = false;
+                            break;
+                        }
+                    }
+
+                    if (areConsecutive) {
+                        // Check against all patterns
+                        for (let pattern of PATTERN_GROUPS) {
+                            const patternCheck = checkPatternMatch(recentDigits, pattern);
+                            if (patternCheck.matched) {
+                                return {
+                                    results: matchingResults,
+                                    suggestedDigit: patternCheck.nextDigit,
+                                    suggestedNumber: inputPrefix + patternCheck.nextDigit,
+                                    suggestionReason: `🔥 HIGH PRIORITY: Pattern ${JSON.stringify(pattern)} detected in ${patternCheck.direction} direction over ${windowSize} consecutive days (${recentDates.reverse().join(', ')}). Sequence: [${recentDigits.join(' → ')}]. Next predicted digit: ${patternCheck.nextDigit}`,
+                                    priority: 'high',
+                                    lastDigits: matchingResults.map(r => r.lastDigit),
+                                    uniqueLastDigits: [...new Set(matchingResults.map(r => r.lastDigit))],
+                                    matchedPattern: pattern,
+                                    patternDirection: patternCheck.direction,
+                                    consecutiveDays: windowSize
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            // PRIORITY 2: Check last 7 days with gaps > 2 days
+            if (uniqueDates.length >= 2) {
+                const last7Days = uniqueDates.slice(0, Math.min(7, uniqueDates.length));
+                const last7Digits = [];
+                const gapsInfo = [];
+
+                for (let i = 0; i < last7Days.length; i++) {
+                    const digits = resultsByDate[last7Days[i]];
+                    last7Digits.push(digits[digits.length - 1]);
+
+                    if (i < last7Days.length - 1) {
+                        const gap = calculateDayGap(last7Days[i + 1], last7Days[i]);
+                        gapsInfo.push(gap);
+                    }
+                }
+
+                // Check if there's a gap > 2 days
+                const hasLargeGap = gapsInfo.some(gap => gap > 2);
+
+                if (hasLargeGap) {
+                    // Look for pattern in these spaced-out results
+                    for (let pattern of PATTERN_GROUPS) {
+                        const digitsInPattern = last7Digits.filter(d => pattern.includes(d));
+
+                        if (digitsInPattern.length >= 2) {
+                            // Find the next logical digit in pattern
+                            const lastDigit = last7Digits[0];
+                            const lastIdx = pattern.indexOf(lastDigit);
+
+                            if (lastIdx !== -1) {
+                                const nextDigit = pattern[(lastIdx + 1) % pattern.length];
+                                return {
+                                    results: matchingResults,
+                                    suggestedDigit: nextDigit,
+                                    suggestedNumber: inputPrefix + nextDigit,
+                                    suggestionReason: `⚡ MEDIUM PRIORITY: Pattern ${JSON.stringify(pattern)} detected in last 7 days with gaps ${gapsInfo.join(', ')} days. Recent sequence: [${last7Digits.join(' → ')}]. Continuing pattern after ${lastDigit}.`,
+                                    priority: 'medium',
+                                    lastDigits: matchingResults.map(r => r.lastDigit),
+                                    uniqueLastDigits: [...new Set(matchingResults.map(r => r.lastDigit))],
+                                    matchedPattern: pattern,
+                                    daysAnalyzed: last7Days.length,
+                                    gaps: gapsInfo
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            // PRIORITY 3: Check last 7 days with odd number gaps
+            if (uniqueDates.length >= 2) {
+                const last7Days = uniqueDates.slice(0, Math.min(7, uniqueDates.length));
+                const last7Digits = [];
+                const oddGapsInfo = [];
+
+                for (let i = 0; i < last7Days.length; i++) {
+                    const digits = resultsByDate[last7Days[i]];
+                    last7Digits.push(digits[digits.length - 1]);
+
+                    if (i < last7Days.length - 1) {
+                        const gap = calculateDayGap(last7Days[i + 1], last7Days[i]);
+                        if (gap % 2 === 1) { // Odd gap
+                            oddGapsInfo.push(gap);
+                        }
+                    }
+                }
+
+                if (oddGapsInfo.length > 0) {
+                    // Find most frequent digit or pattern
+                    const digitFrequency = {};
+                    last7Digits.forEach(d => {
+                        digitFrequency[d] = (digitFrequency[d] || 0) + 1;
+                    });
+
+                    // Check for pattern membership
+                    for (let pattern of PATTERN_GROUPS) {
+                        const digitsInPattern = last7Digits.filter(d => pattern.includes(d));
+
+                        if (digitsInPattern.length >= 2) {
+                            const lastDigit = last7Digits[0];
+                            const lastIdx = pattern.indexOf(lastDigit);
+
+                            if (lastIdx !== -1) {
+                                const nextDigit = pattern[(lastIdx + 1) % pattern.length];
+                                return {
+                                    results: matchingResults,
+                                    suggestedDigit: nextDigit,
+                                    suggestedNumber: inputPrefix + nextDigit,
+                                    suggestionReason: `💡 NORMAL PRIORITY: Pattern ${JSON.stringify(pattern)} detected in last 7 days with odd gaps [${oddGapsInfo.join(', ')} days]. Recent digits: [${last7Digits.join(', ')}]. Suggesting ${nextDigit} based on pattern continuation.`,
+                                    priority: 'normal',
+                                    lastDigits: matchingResults.map(r => r.lastDigit),
+                                    uniqueLastDigits: [...new Set(matchingResults.map(r => r.lastDigit))],
+                                    matchedPattern: pattern,
+                                    daysAnalyzed: last7Days.length,
+                                    oddGaps: oddGapsInfo
+                                };
+                            }
+                        }
+                    }
+
+                    // If no pattern, suggest most frequent digit
+                    const mostFrequent = Object.entries(digitFrequency).sort((a, b) => b[1] - a[1])[0];
+                    return {
+                        results: matchingResults,
+                        suggestedDigit: parseInt(mostFrequent[0]),
+                        suggestedNumber: inputPrefix + mostFrequent[0],
+                        suggestionReason: `💡 NORMAL PRIORITY: Most frequent digit (${mostFrequent[0]}) appeared ${mostFrequent[1]} times in last 7 days with odd gaps. Recent sequence: [${last7Digits.join(', ')}].`,
+                        priority: 'normal',
+                        lastDigits: matchingResults.map(r => r.lastDigit),
+                        uniqueLastDigits: [...new Set(matchingResults.map(r => r.lastDigit))],
+                        daysAnalyzed: last7Days.length,
+                        oddGaps: oddGapsInfo
+                    };
+                }
+            }
+
+            // Default fallback
+            const allLastDigits = matchingResults.map(r => r.lastDigit);
+            const uniqueLastDigits = [...new Set(allLastDigits)];
+            const lastDigit = allLastDigits[0];
+
+            // Try to find any pattern
+            for (let pattern of PATTERN_GROUPS) {
+                if (pattern.includes(lastDigit)) {
+                    const lastIdx = pattern.indexOf(lastDigit);
+                    const nextDigit = pattern[(lastIdx + 1) % pattern.length];
+                    return {
+                        results: matchingResults,
+                        suggestedDigit: nextDigit,
+                        suggestedNumber: inputPrefix + nextDigit,
+                        suggestionReason: `ℹ️ DEFAULT: Last observed digit was ${lastDigit}. Suggesting ${nextDigit} from pattern ${JSON.stringify(pattern)}.`,
+                        priority: 'default',
+                        lastDigits: allLastDigits,
+                        uniqueLastDigits: uniqueLastDigits,
+                        matchedPattern: pattern
+                    };
+                }
+            }
+
+            return {
+                results: matchingResults,
+                suggestedDigit: 0,
+                suggestedNumber: inputPrefix + '0',
+                suggestionReason: 'ℹ️ DEFAULT: No clear pattern found. Starting with 0.',
+                priority: 'default',
+                lastDigits: allLastDigits,
+                uniqueLastDigits: uniqueLastDigits
+            };
+        };
+
+        const TrendingUpIcon = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+        );
+
+        const LotteryPatternAnalyzer = () => {
+            const [parsedData, setParsedData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [view, setView] = useState('search');
+            const [searchType, setSearchType] = useState('exact');
+            const [searchInput, setSearchInput] = useState('');
+            const [predictorInput, setPredictorInput] = useState('');
+            const [bulkPredictorInput, setBulkPredictorInput] = useState('');
+            const [bulkPredictorResults, setBulkPredictorResults] = useState([]);
+            const [expandedRows, setExpandedRows] = useState(new Set());
+
+            useEffect(() => {
+                const loadData = async () => {
+                    try {
+                        fetch('../lottery-data.json')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Failed to load JSON file');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                lotteryData = data;
+                                console.log('Lottery data loaded:', lotteryData);
+                                setParsedData(lotteryData);
+                                setLoading(false);
+                            })
+                            .catch(error => {
+                                console.error('Error loading JSON:', error);
+                                setLoading(false);
+                            });
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                        setLoading(false);
+                    }
+                };
+                loadData();
+            }, []);
+
+            const searchByPrefix = useMemo(() => {
+                if (!parsedData || searchInput.length === 0) return [];
+
+                const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                const allDates = [...parsedData];
+                const results = [];
+
+                allDates.forEach(day => {
+                    const matchingNumbersBySlot = {};
+                    slots.forEach(slot => {
+                        const val = day.result?.[slot];
+                        if (!val) return;
+
+                        const nums = Array.isArray(val) ? val : [String(val)];
+                        nums.forEach(num => {
+                            const numStr = String(num).padStart(4, '0');
+                            let isMatch = false;
+
+                            if (searchType === 'range') {
+                                const rangePrefix = searchInput.padEnd(3, '0');
+                                const rangeStart = parseInt(rangePrefix + '0');
+                                const rangeEnd = parseInt(rangePrefix + '9');
+                                const numInt = parseInt(numStr);
+                                isMatch = numInt >= rangeStart && numInt <= rangeEnd;
+                            } else if (searchType === 'exact') {
+                                const exactNum = searchInput.padStart(4, '0');
+                                isMatch = numStr === exactNum;
+                            }
+
+                            if (isMatch) {
+                                if (!matchingNumbersBySlot[slot]) {
+                                    matchingNumbersBySlot[slot] = [];
+                                }
+                                matchingNumbersBySlot[slot].push(numStr);
+                            }
+                        });
+                    });
+
+                    if (Object.keys(matchingNumbersBySlot).length > 0) {
+                        results.push({
+                            date: day.date,
+                            numbersBySlot: matchingNumbersBySlot
+                        });
+                    }
+                });
+
+                return results;
+            }, [parsedData, searchInput, searchType]);
+
+            const predictorAnalysis = useMemo(() => {
+                if (!parsedData || predictorInput.length !== 3) return null;
+                return analyzePredictorWithPriority(parsedData, predictorInput);
+            }, [parsedData, predictorInput]);
+
+            const homePageRedirect = () => {
+                window.location.assign("https://kumaraneng123-spec.github.io/lottery-prediction-tool/v2.prediction.html")
+            }
+
+            const exportBulkPredictorResults = () => {
+                if (!bulkPredictorResults || bulkPredictorResults.length === 0) return;
+
+                try {
+                    const csv = [
+                        ['Priority', 'Input Number', 'Suggested Number', 'Pattern', 'Reason', 'History Count'].join(','),
+                        ...bulkPredictorResults.map(r => [
+                            r.priority || 'default',
+                            r.inputNumber || '',
+                            r.suggestedNumber || '',
+                            r.matchedPattern ? JSON.stringify(r.matchedPattern) : 'No Pattern',
+                            `"${r.suggestionReason || ''}"`,
+                            r.historyCount || 0
+                        ].join(','))
+                    ].join('\n');
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bulk-predictions.csv';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error('Error exporting results:', error);
+                }
+            };
+
+            const toggleRowExpansion = (index) => {
+                const newExpanded = new Set(expandedRows);
+                if (newExpanded.has(index)) {
+                    newExpanded.delete(index);
+                } else {
+                    newExpanded.add(index);
+                }
+                setExpandedRows(newExpanded);
+            };
+
+            const analyzeBulkPredictorNumbers = () => {
+                if (!parsedData || !bulkPredictorInput || !bulkPredictorInput.trim()) {
+                    setBulkPredictorResults([]);
+                    return;
+                }
+
+                const inputNumbers = bulkPredictorInput
+                    .split(/[\n,\s]+/)
+                    .map(n => n.trim())
+                    .filter(n => /^\d{3}$/.test(n));
+
+                if (inputNumbers.length === 0) {
+                    setBulkPredictorResults([]);
+                    return;
+                }
+
+                const uniqueNumbers = [...new Set(inputNumbers)];
+
+                const results = uniqueNumbers.map(num => {
+                    const analysis = analyzePredictorWithPriority(parsedData, num);
+
+                    if (!analysis) {
+                        return {
+                            inputNumber: num,
+                            suggestedNumber: num + '0',
+                            suggestedDigit: 0,
+                            matchedPattern: null,
+                            suggestionReason: 'No data available',
+                            priority: 'default',
+                            historyCount: 0,
+                            history: [],
+                            uniqueLastDigits: [],
+                            lastDigits: []
+                        };
+                    }
+
+                    return {
+                        inputNumber: num,
+                        suggestedNumber: analysis.suggestedNumber,
+                        suggestedDigit: analysis.suggestedDigit,
+                        matchedPattern: analysis.matchedPattern,
+                        suggestionReason: analysis.suggestionReason,
+                        priority: analysis.priority,
+                        historyCount: analysis.results.length,
+                        history: analysis.results.slice(0, 10),
+                        uniqueLastDigits: analysis.uniqueLastDigits,
+                        lastDigits: analysis.lastDigits,
+                        patternDirection: analysis.patternDirection,
+                        consecutiveDays: analysis.consecutiveDays,
+                        daysAnalyzed: analysis.daysAnalyzed,
+                        gaps: analysis.gaps,
+                        oddGaps: analysis.oddGaps
+                    };
+                });
+
+                // Sort by priority: high -> medium -> normal -> default
+                const priorityOrder = { 'high': 0, 'medium': 1, 'normal': 2, 'default': 3 };
+                results.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+                setBulkPredictorResults(results);
+            };
+
+            if (loading) return (
+                <div className="loading">
+                    <div className="spinner"></div>
+                    <p className="loading-text">Loading lottery data...</p>
+                </div>
+            );
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>
+                            <TrendingUpIcon />
+                            Lottery Pattern Analyzer
+                        </h1>
+                        <p>Analyze lottery patterns and search winning numbers</p>
+                    </div>
+
+                    <div className="tab-buttons">
+                        <button
+                            onClick={() => setView('search')}
+                            className={`tab-button ${view === 'search' ? 'active' : 'inactive'}`}
+                        >
+                            Number Search
+                        </button>
+                        <button
+                            onClick={() => setView('predictor')}
+                            className={`tab-button ${view === 'predictor' ? 'active' : 'inactive'}`}
+                        >
+                            Predictor Suggestion
+                        </button>
+                        <button
+                            onClick={() => setView('bulkPredictor')}
+                            className={`tab-button ${view === 'bulkPredictor' ? 'active' : 'inactive'}`}
+                        >
+                            Bulk Predictor
+                        </button>
+                        <button onClick={homePageRedirect} className="tab-button">
+                            Go to Home Page
+                        </button>
+                    </div>
+
+                    {view === 'search' && (
+                        <div>
+                            <div className="card">
+                                <label className="input-label">Search Type</label>
+                                <div className="search-type-buttons">
+                                    <button
+                                        onClick={() => { setSearchType('range'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'range' ? 'active' : 'inactive'}`}
+                                    >
+                                        3-Digit Range
+                                    </button>
+                                    <button
+                                        onClick={() => { setSearchType('exact'); setSearchInput(''); }}
+                                        className={`search-type-btn ${searchType === 'exact' ? 'active' : 'inactive'}`}
+                                    >
+                                        4-Digit Exact
+                                    </button>
+                                </div>
+
+                                <label className="input-label">
+                                    {searchType === 'range' && 'Enter 3 Digits for Range (e.g., 810 → 8100-8109)'}
+                                    {searchType === 'exact' && 'Enter 4-Digit Number (e.g., 1234, 5678, 0099)'}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={searchInput}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        if (searchType === 'range') {
+                                            setSearchInput(val.slice(0, 3));
+                                        } else if (searchType === 'exact') {
+                                            setSearchInput(val.slice(0, 4));
+                                        }
+                                    }}
+                                    placeholder={
+                                        searchType === 'range' ? 'e.g., 810, 123, 456' :
+                                            'e.g., 1234, 5678, 0099'
+                                    }
+                                    className="search-input"
+                                    maxLength={searchType === 'exact' ? 4 : 3}
+                                />
+
+                                {searchType === 'range' && searchInput.length === 3 && (
+                                    <p className="range-info">
+                                        Searching range: {searchInput}0 - {searchInput}9 (10 numbers)
+                                    </p>
+                                )}
+                            </div>
+
+                            {searchInput.length > 0 && (
+                                <div>
+                                    <h2 className="results-header">
+                                        {searchType === 'range' && `Results for Range ${searchInput}0-${searchInput}9`}
+                                        {searchType === 'exact' && `Results for Number "${searchInput.padStart(4, '0')}"`}
+                                        <span> ({searchByPrefix.length} dates found)</span>
+                                    </h2>
+
+                                    {searchByPrefix.length === 0 ? (
+                                        <div className="no-results">
+                                            <p>
+                                                {searchType === 'range' && `No numbers found in range ${searchInput}0-${searchInput}9`}
+                                                {searchType === 'exact' && `Number "${searchInput.padStart(4, '0')}" has not appeared in any draws`}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="results-grid">
+                                            {searchByPrefix.map((result, idx) => {
+                                                const totalNumbers = Object.values(result.numbersBySlot).reduce((sum, nums) => sum + nums.length, 0);
+                                                return (
+                                                    <div key={idx} className="result-card">
+                                                        <div className="result-header">
+                                                            <div className="result-date">{result.date}</div>
+                                                            <div className="result-count">{totalNumbers} number{totalNumbers > 1 ? 's' : ''} found</div>
+                                                        </div>
+                                                        <div>
+                                                            {Object.entries(result.numbersBySlot).map(([slot, numbers]) => (
+                                                                <div key={slot} className="slot-card">
+                                                                    <div className="slot-header">
+                                                                        <span className="prize-badge">₹{slot}</span>
+                                                                        <span className="match-count">({numbers.length} match{numbers.length > 1 ? 'es' : ''})</span>
+                                                                    </div>
+                                                                    <div className="numbers-container">
+                                                                        {numbers.map((num, numIdx) => (
+                                                                            <span key={numIdx} className="number-badge">
+                                                                                {num}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {view === 'predictor' && (
+                        <div>
+                            <div className="card">
+                                <h2 className="section-title">Predictor Suggestion</h2>
+                                <label className="input-label">Enter 3-Digit Number for Prediction</label>
+                                <input
+                                    type="text"
+                                    value={predictorInput}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        setPredictorInput(val.slice(0, 3));
+                                    }}
+                                    placeholder="e.g., 105, 810, 123"
+                                    className="search-input"
+                                    maxLength={3}
+                                />
+                                <p className="range-info">
+                                    Analyzing range: {predictorInput || '___'}0 - {predictorInput || '___'}9
+                                </p>
+                            </div>
+
+                            {predictorInput.length === 3 && predictorAnalysis && (
+                                <div>
+                                    <div className="prediction-card">
+                                        <h2 className="section-title">
+                                            🎯 Suggested Number
+                                            <span className={`priority-badge priority-${predictorAnalysis.priority}`}>
+                                                {predictorAnalysis.priority.toUpperCase()} PRIORITY
+                                            </span>
+                                        </h2>
+                                        <div className="prediction-number">{predictorAnalysis.suggestedNumber}</div>
+                                        <div className="prediction-reason">
+                                            <strong>Analysis:</strong> {predictorAnalysis.suggestionReason}
+                                        </div>
+
+                                        {predictorAnalysis.patternDirection && (
+                                            <div className="pattern-direction">
+                                                {predictorAnalysis.patternDirection === 'forward' ? '➡️' : '⬅️'}
+                                                Pattern Direction: {predictorAnalysis.patternDirection === 'forward' ? 'Forward' : 'Reverse'}
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.consecutiveDays && (
+                                            <div className="gap-info">
+                                                <strong>🔥 Consecutive Days:</strong> {predictorAnalysis.consecutiveDays} days in a row
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.gaps && predictorAnalysis.gaps.length > 0 && (
+                                            <div className="gap-info">
+                                                <strong>📊 Day Gaps:</strong> {predictorAnalysis.gaps.join(', ')} days
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.oddGaps && predictorAnalysis.oddGaps.length > 0 && (
+                                            <div className="gap-info">
+                                                <strong>📊 Odd Day Gaps:</strong> {predictorAnalysis.oddGaps.join(', ')} days
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.matchedPattern && (
+                                            <div className="pattern-info">
+                                                <div className="pattern-title">Detected Pattern</div>
+                                                <div className="pattern-digits">
+                                                    {predictorAnalysis.matchedPattern.map((digit, idx) => (
+                                                        <span
+                                                            key={idx}
+                                                            className="pattern-digit"
+                                                            style={{
+                                                                opacity: predictorAnalysis.uniqueLastDigits.includes(digit) ? 1 : 0.5
+                                                            }}
+                                                        >
+                                                            {digit}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div style={{ marginTop: '15px', fontSize: '0.95rem', color: '#666' }}>
+                                                    <strong>Observed last digits:</strong> {predictorAnalysis.uniqueLastDigits.sort((a, b) => a - b).join(', ')}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="card">
+                                        <h2 className="section-title">Previous Results History</h2>
+                                        {predictorAnalysis.results.length === 0 ? (
+                                            <div className="no-results">
+                                                <p>No previous results found for range {predictorInput}0-{predictorInput}9</p>
+                                            </div>
+                                        ) : (
+                                            <div className="history-table">
+                                                <div className="history-row header">
+                                                    <div>Date</div>
+                                                    <div>Number</div>
+                                                    <div>Last Digit</div>
+                                                    <div>Prize Slot</div>
+                                                </div>
+                                                {predictorAnalysis.results.map((result, idx) => (
+                                                    <div key={idx} className="history-row">
+                                                        <div>{result.date}</div>
+                                                        <div><strong>{result.number}</strong></div>
+                                                        <div>
+                                                            <span className="last-digit-badge">{result.lastDigit}</span>
+                                                        </div>
+                                                        <div>₹{result.slot}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {predictorAnalysis.results.length > 0 && (
+                                            <div className="pattern-info" style={{ marginTop: '20px' }}>
+                                                <div className="pattern-title">Last Digit Sequence (Most Recent First)</div>
+                                                <div className="pattern-digits">
+                                                    {predictorAnalysis.lastDigits.slice(0, 20).map((digit, idx) => (
+                                                        <span key={idx} className="pattern-digit">{digit}</span>
+                                                    ))}
+                                                    {predictorAnalysis.lastDigits.length > 20 && (
+                                                        <span style={{ padding: '10px', color: '#666' }}>
+                                                            ... and {predictorAnalysis.lastDigits.length - 20} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div style={{ marginTop: '15px', fontSize: '0.95rem', color: '#666' }}>
+                                                    <strong>Unique digits observed:</strong> {predictorAnalysis.uniqueLastDigits.sort((a, b) => a - b).join(', ')}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {view === 'bulkPredictor' && (
+                        <div>
+                            <div className="card bulk-input-container">
+                                <h2 className="section-title">Bulk Predictor Analysis</h2>
+                                <label className="input-label">Enter Multiple 3-Digit Numbers</label>
+                                <textarea
+                                    className="bulk-textarea"
+                                    value={bulkPredictorInput}
+                                    onChange={(e) => setBulkPredictorInput(e.target.value)}
+                                    placeholder="Enter 3-digit numbers separated by commas, spaces, or new lines.&#10;Example:&#10;105, 810, 123&#10;456&#10;789, 234, 567"
+                                />
+                                <p className="input-hint">
+                                    💡 Tip: You can paste numbers separated by commas, spaces, or on separate lines.
+                                    Only valid 3-digit numbers will be analyzed.
+                                </p>
+                                <div className="bulk-actions">
+                                    <button
+                                        className="analyze-btn"
+                                        onClick={analyzeBulkPredictorNumbers}
+                                        disabled={!bulkPredictorInput || !bulkPredictorInput.trim()}
+                                    >
+                                        🔍 Analyze All Numbers
+                                    </button>
+                                    <button
+                                        className="clear-btn"
+                                        onClick={() => {
+                                            setBulkPredictorInput('');
+                                            setBulkPredictorResults([]);
+                                            setExpandedRows(new Set());
+                                        }}
+                                    >
+                                        🗑️ Clear All
+                                    </button>
+                                    {bulkPredictorResults && bulkPredictorResults.length > 0 && (
+                                        <button className="export-btn" onClick={exportBulkPredictorResults}>
+                                            Export Results (CSV)
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {bulkPredictorResults && bulkPredictorResults.length > 0 && (
+                                <div>
+                                    <div className="summary-stats">
+                                        <div className="summary-card">
+                                            <div className="stat-number">{bulkPredictorResults.length}</div>
+                                            <div className="stat-label">Numbers Analyzed</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.filter(r => r && r.priority === 'high').length}
+                                            </div>
+                                            <div className="stat-label">High Priority</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.filter(r => r && r.matchedPattern).length}
+                                            </div>
+                                            <div className="stat-label">Patterns Detected</div>
+                                        </div>
+                                        <div className="summary-card">
+                                            <div className="stat-number">
+                                                {bulkPredictorResults.reduce((sum, r) => sum + (r && r.historyCount ? r.historyCount : 0), 0)}
+                                            </div>
+                                            <div className="stat-label">Total Matches</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="card bulk-results-table">
+                                        <h2 className="section-title">Prediction Results (Sorted by Priority)</h2>
+                                        <div className="table-wrapper">
+                                            <table className="results-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Priority</th>
+                                                        <th>Input</th>
+                                                        <th>Suggested Number</th>
+                                                        <th>Pattern</th>
+                                                        <th>Analysis Reason</th>
+                                                        <th>History</th>
+                                                        <th>Details</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {bulkPredictorResults.map((result, index) => {
+                                                        if (!result) return null;
+
+                                                        return (
+                                                            <React.Fragment key={index}>
+                                                                <tr data-priority={result.priority}>
+                                                                    <td>
+                                                                        <span className={`priority-badge priority-${result.priority}`}>
+                                                                            {result.priority === 'high' && '🔥 HIGH'}
+                                                                            {result.priority === 'medium' && '⚡ MEDIUM'}
+                                                                            {result.priority === 'normal' && '💡 NORMAL'}
+                                                                            {result.priority === 'default' && 'ℹ️ DEFAULT'}
+                                                                        </span>
+                                                                        {result.consecutiveDays && (
+                                                                            <span className="consecutive-badge">
+                                                                                {result.consecutiveDays}d
+                                                                            </span>
+                                                                        )}
+                                                                        {result.daysAnalyzed && (
+                                                                            <span className="days-analyzed-info">
+                                                                                {result.daysAnalyzed}d
+                                                                            </span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="table-input-number">
+                                                                        {result.inputNumber || 'N/A'}
+                                                                    </td>
+                                                                    <td className="table-suggested-number">
+                                                                        {result.suggestedNumber || 'N/A'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {result.matchedPattern ? (
+                                                                            <div>
+                                                                                <span className="table-pattern-badge">
+                                                                                    {JSON.stringify(result.matchedPattern)}
+                                                                                </span>
+                                                                                {result.patternDirection && (
+                                                                                    <div style={{ fontSize: '0.75rem', marginTop: '5px', color: '#666' }}>
+                                                                                        {result.patternDirection === 'forward' ? '➡️ Forward' : '⬅️ Reverse'}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="table-pattern-none">No Pattern</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="table-reason">
+                                                                        {result.suggestionReason || 'No reason available'}
+                                                                        {result.gaps && result.gaps.length > 0 && (
+                                                                            <div style={{ fontSize: '0.75rem', marginTop: '5px', color: '#888' }}>
+                                                                                Gaps: {result.gaps.join(', ')} days
+                                                                            </div>
+                                                                        )}
+                                                                        {result.oddGaps && result.oddGaps.length > 0 && (
+                                                                            <div style={{ fontSize: '0.75rem', marginTop: '5px', color: '#888' }}>
+                                                                                Odd gaps: {result.oddGaps.join(', ')} days
+                                                                            </div>
+                                                                        )}
+                                                                    </td>
+                                                                    <td>
+                                                                        <span className="table-history-count">
+                                                                            {result.historyCount || 0}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>
+                                                                        {result.historyCount > 0 && (
+                                                                            <button
+                                                                                className="expand-btn"
+                                                                                onClick={() => toggleRowExpansion(index)}
+                                                                            >
+                                                                                {expandedRows.has(index) ? '▲ Hide' : '▼ Show'}
+                                                                            </button>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                                {expandedRows.has(index) && result.historyCount > 0 && (
+                                                                    <tr className="expandable-row">
+                                                                        <td colSpan="7">
+                                                                            <div className="expandable-content">
+                                                                                <h4 style={{
+                                                                                    color: '#764ba2',
+                                                                                    marginBottom: '15px',
+                                                                                    fontSize: '1.1rem',
+                                                                                    fontWeight: '700'
+                                                                                }}>
+                                                                                    📊 Detailed History for {result.inputNumber || 'N/A'}
+                                                                                    <span className={`priority-badge priority-${result.priority}`} style={{ marginLeft: '15px' }}>
+                                                                                        {result.priority.toUpperCase()}
+                                                                                    </span>
+                                                                                </h4>
+
+                                                                                {result.uniqueLastDigits && result.uniqueLastDigits.length > 0 && (
+                                                                                    <div style={{
+                                                                                        background: 'white',
+                                                                                        padding: '15px',
+                                                                                        borderRadius: '8px',
+                                                                                        marginBottom: '15px',
+                                                                                        border: '2px solid #667eea'
+                                                                                    }}>
+                                                                                        <p style={{ marginBottom: '10px', fontWeight: '600' }}>
+                                                                                            <strong>Unique Last Digits Observed:</strong>
+                                                                                        </p>
+                                                                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                                                            {result.uniqueLastDigits.sort((a, b) => a - b).map((digit, idx) => (
+                                                                                                <span key={idx} className="last-digit-badge">
+                                                                                                    {digit}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                        {result.matchedPattern && (
+                                                                                            <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#666' }}>
+                                                                                                <strong>Pattern:</strong> {JSON.stringify(result.matchedPattern)}
+                                                                                                {result.patternDirection && (
+                                                                                                    <span style={{ marginLeft: '10px' }}>
+                                                                                                        ({result.patternDirection === 'forward' ? '➡️ Forward' : '⬅️ Reverse'})
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {result.history && result.history.length > 0 && (
+                                                                                    <table className="mini-history-table">
+                                                                                        <thead>
+                                                                                            <tr>
+                                                                                                <th>Date</th>
+                                                                                                <th>Number</th>
+                                                                                                <th>Last Digit</th>
+                                                                                                <th>Prize Slot</th>
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody>
+                                                                                            {result.history.map((hist, hIndex) => {
+                                                                                                if (!hist) return null;
+
+                                                                                                return (
+                                                                                                    <tr key={hIndex}>
+                                                                                                        <td>{hist.date || 'N/A'}</td>
+                                                                                                        <td style={{
+                                                                                                            fontWeight: '700',
+                                                                                                            color: '#764ba2',
+                                                                                                            fontSize: '1rem'
+                                                                                                        }}>
+                                                                                                            {hist.number || 'N/A'}
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <span className="last-digit-badge">
+                                                                                                                {hist.lastDigit !== null && hist.lastDigit !== undefined ? hist.lastDigit : '-'}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <span style={{
+                                                                                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                                                                color: 'white',
+                                                                                                                padding: '4px 10px',
+                                                                                                                borderRadius: '5px',
+                                                                                                                fontSize: '0.85rem',
+                                                                                                                fontWeight: '600'
+                                                                                                            }}>
+                                                                                                                ₹{hist.slot || 'N/A'}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                );
+                                                                                            })}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                )}
+
+                                                                                {result.historyCount > 10 && (
+                                                                                    <p style={{
+                                                                                        textAlign: 'center',
+                                                                                        marginTop: '15px',
+                                                                                        color: '#666',
+                                                                                        fontSize: '0.9rem',
+                                                                                        fontStyle: 'italic'
+                                                                                    }}>
+                                                                                        Showing 10 most recent results out of {result.historyCount} total matches
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {bulkPredictorInput && bulkPredictorInput.trim() && (!bulkPredictorResults || bulkPredictorResults.length === 0) && (
+                                <div className="card">
+                                    <div className="no-results">
+                                        <p>Click "Analyze All Numbers" to see predictions for your numbers</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<LotteryPatternAnalyzer />, document.getElementById('root'));
+    </script>
+</body>
+</html>

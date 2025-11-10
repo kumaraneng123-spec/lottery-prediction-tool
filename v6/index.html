@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Future Prediction</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="prediction-container">
+        <div class="header-section">
+            <h1>🎰 Lottery Future Prediction</h1>
+            <p class="subtitle">AI-Powered Analysis for Next 7 Days</p>
+        </div>
+
+        <div class="controls-section">
+            <button id="analyzeBtn" class="analyze-button">
+                <span class="button-icon">🔮</span>
+                Analyze & Predict
+            </button>
+            <button id="exportBtn" class="export-button" style="display:none;">
+                <span class="button-icon">📊</span>
+                Export Report
+            </button>
+        </div>
+
+        <div id="loadingSpinner" class="loading-spinner" style="display:none;">
+            <div class="spinner"></div>
+            <p>Analyzing lottery patterns...</p>
+        </div>
+
+        <div id="resultsContainer" class="results-container" style="display:none;">
+            
+            <!-- Prediction Summary -->
+            <div class="prediction-summary">
+                <h2>📈 Prediction Summary</h2>
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Days Analyzed</div>
+                        <div class="stat-value" id="daysAnalyzed">30</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Patterns Found</div>
+                        <div class="stat-value" id="patternsFound">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Confidence Score</div>
+                        <div class="stat-value" id="confidenceScore">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Success Rate</div>
+                        <div class="stat-value" id="successRate">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Predictions -->
+            <div class="predictions-section">
+                <h2>🎯 Top 2 Predictions for Next 7 Days</h2>
+                <div id="topPredictions" class="top-predictions-grid">
+                    <!-- Predictions will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Daily Predictions Timeline -->
+            <div class="timeline-section">
+                <h2>📅 Next 7 Days Predictions Timeline</h2>
+                <div id="timelineContainer" class="timeline-container">
+                    <!-- Timeline will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Pattern Analysis -->
+            <div class="pattern-analysis-section">
+                <h2>🔍 Pattern Analysis Details</h2>
+                <div id="patternAnalysis" class="pattern-analysis">
+                    <!-- Pattern details will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Prize Distribution -->
+            <div class="prize-distribution-section">
+                <h2>💰 Prize Distribution Forecast</h2>
+                <div id="prizeDistribution" class="prize-grid">
+                    <!-- Prize slots will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Historical Accuracy -->
+            <div class="accuracy-section">
+                <h2>📊 Historical Accuracy</h2>
+                <div id="accuracyData" class="accuracy-table">
+                    <!-- Accuracy data will be inserted here -->
+                </div>
+            </div>
+
+        </div>
+
+        <div id="noDataMessage" class="no-data-message" style="display:none;">
+            <p>Click "Analyze & Predict" to generate predictions</p>
+        </div>
+    </div>
+
+    <script src="prediction-script.js"></script>
+</body>
+</html>

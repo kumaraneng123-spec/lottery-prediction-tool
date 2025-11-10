@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -361,6 +362,110 @@
                 uniqueLastDigits: uniqueLastDigits
             };
         };
+        // Add this function after analyzePredictorWithPriority function
+
+        const analyzeTwoDigitPattern = (parsedData, inputTwoDigits) => {
+            if (!parsedData || inputTwoDigits.length !== 2) return null;
+
+            const slots = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+            const allDates = [...parsedData];
+
+            // Get last 16 days
+            const last16Days = allDates.slice(0, 16);
+
+            if (last16Days.length === 0) return null;
+
+            // Collect all occurrences of numbers starting with these two digits
+            const occurrences = [];
+
+            last16Days.forEach(day => {
+                slots.forEach(slot => {
+                    const val = day.result?.[slot];
+                    if (!val) return;
+
+                    const nums = Array.isArray(val) ? val : [String(val)];
+                    nums.forEach(num => {
+                        const numStr = String(num).padStart(4, '0');
+                        const twoDigitPrefix = numStr.substring(0, 2);
+
+                        if (twoDigitPrefix === inputTwoDigits) {
+                            occurrences.push({
+                                date: day.date,
+                                number: numStr,
+                                slot: slot,
+                                fullNumber: numStr
+                            });
+                        }
+                    });
+                });
+            });
+
+            if (occurrences.length === 0) {
+                return {
+                    found: false,
+                    totalOccurrences: 0,
+                    message: `No numbers starting with ${inputTwoDigits} found in last 16 days`,
+                    datesList: [],
+                    occurrences: []
+                };
+            }
+
+            // Sort by date (most recent first)
+            occurrences.sort((a, b) => {
+                const dateA = new Date(a.date.split('-').reverse().join('-'));
+                const dateB = new Date(b.date.split('-').reverse().join('-'));
+                return dateB - dateA;
+            });
+
+            // Get unique dates
+            const uniqueDates = [...new Set(occurrences.map(o => o.date))];
+            uniqueDates.sort((a, b) => {
+                const dateA = new Date(a.split('-').reverse().join('-'));
+                const dateB = new Date(b.split('-').reverse().join('-'));
+                return dateB - dateA;
+            });
+
+            // Calculate gaps between dates
+            const dateGaps = [];
+            for (let i = 0; i < uniqueDates.length - 1; i++) {
+                const date1 = new Date(uniqueDates[i].split('-').reverse().join('-'));
+                const date2 = new Date(uniqueDates[i + 1].split('-').reverse().join('-'));
+                const diffTime = Math.abs(date2 - date1);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                dateGaps.push({
+                    fromDate: uniqueDates[i + 1],
+                    toDate: uniqueDates[i],
+                    gap: diffDays
+                });
+            }
+
+            // Calculate average gap
+            const avgGap = dateGaps.length > 0
+                ? Math.round(dateGaps.reduce((sum, g) => sum + g.gap, 0) / dateGaps.length)
+                : 0;
+
+            // Predict next occurrence
+            const mostRecentDate = uniqueDates[0];
+            const mostRecentDateObj = new Date(mostRecentDate.split('-').reverse().join('-'));
+            const predictedNextDate = new Date(mostRecentDateObj);
+            predictedNextDate.setDate(predictedNextDate.getDate() + avgGap);
+
+            const predictedDateStr = `${String(predictedNextDate.getDate()).padStart(2, '0')}-${String(predictedNextDate.getMonth() + 1).padStart(2, '0')}-${predictedNextDate.getFullYear()}`;
+
+            return {
+                found: true,
+                twoDigits: inputTwoDigits,
+                totalOccurrences: occurrences.length,
+                uniqueDatesCount: uniqueDates.length,
+                occurrences: occurrences,
+                uniqueDates: uniqueDates,
+                dateGaps: dateGaps,
+                averageGap: avgGap,
+                predictedNextDate: predictedDateStr,
+                datesList: uniqueDates,
+                last16DaysAnalyzed: last16Days.length
+            };
+        };
 
         const TrendingUpIcon = () => (
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -379,6 +484,17 @@
             const [bulkPredictorInput, setBulkPredictorInput] = useState('');
             const [bulkPredictorResults, setBulkPredictorResults] = useState([]);
             const [expandedRows, setExpandedRows] = useState(new Set());
+
+
+            const [twoDigitInput, setTwoDigitInput] = useState('');
+            const [twoDigitAnalysis, setTwoDigitAnalysis] = useState(null);
+            const [showTwoDigitDetails, setShowTwoDigitDetails] = useState(false);
+
+            // Add this useMemo hook for two digit analysis
+            const twoDigitAnalysisResult = useMemo(() => {
+                if (!parsedData || twoDigitInput.length !== 2) return null;
+                return analyzeTwoDigitPattern(parsedData, twoDigitInput);
+            }, [parsedData, twoDigitInput]);
 
             useEffect(() => {
                 const loadData = async () => {
@@ -584,6 +700,16 @@
                     </div>
 
                     <div className="tab-buttons">
+                        <button
+                            onClick={() => {
+                                setView('twoDigitAnalysis');
+                                setTwoDigitInput('');
+                                setTwoDigitAnalysis(null);
+                            }}
+                            className={`tab-button ${view === 'twoDigitAnalysis' ? 'active' : 'inactive'}`}
+                        >
+                            Two Digit Pattern (16 Days)
+                        </button>
                         <button
                             onClick={() => setView('search')}
                             className={`tab-button ${view === 'search' ? 'active' : 'inactive'}`}
@@ -1130,11 +1256,263 @@
                             )}
                         </div>
                     )}
-                </div>
+                    {view === 'twoDigitAnalysis' && (
+                        <div>
+                            <div className="card">
+                                <h2 className="section-title">Two Digit Pattern Analysis (Last 16 Days)</h2>
+                                <label className="input-label">Enter 2-Digit Prefix</label>
+                                <input
+                                    type="text"
+                                    value={twoDigitInput}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        setTwoDigitInput(val.slice(0, 2));
+                                    }}
+                                    placeholder="e.g., 81, 12, 45"
+                                    className="search-input"
+                                    maxLength={2}
+                                />
+                                <p className="range-info">
+                                    Searching for numbers starting with: {twoDigitInput || '__'}
+                                </p>
+                            </div>
+
+                            {twoDigitInput.length === 2 && twoDigitAnalysisResult && (
+                                <div>
+                                    {!twoDigitAnalysisResult.found ? (
+                                        <div className="card">
+                                            <div className="no-results">
+                                                <p>{twoDigitAnalysisResult.message}</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {/* Summary Card */}
+                                            <div className="card" style={{
+                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                color: 'white',
+                                                padding: '30px'
+                                            }}>
+                                                <h2 style={{ marginBottom: '20px', fontSize: '1.8rem' }}>
+                                                    Analysis for "{twoDigitInput}__"
+                                                </h2>
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                                    gap: '20px'
+                                                }}>
+                                                    <div style={{
+                                                        background: 'rgba(255,255,255,0.2)',
+                                                        padding: '15px',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Occurrences</div>
+                                                        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                                                            {twoDigitAnalysisResult.totalOccurrences}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{
+                                                        background: 'rgba(255,255,255,0.2)',
+                                                        padding: '15px',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Unique Dates</div>
+                                                        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                                                            {twoDigitAnalysisResult.uniqueDatesCount}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{
+                                                        background: 'rgba(255,255,255,0.2)',
+                                                        padding: '15px',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Avg Gap (Days)</div>
+                                                        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                                                            {twoDigitAnalysisResult.averageGap}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{
+                                                        background: 'rgba(255,255,255,0.2)',
+                                                        padding: '15px',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Predicted Next</div>
+                                                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                                                            {twoDigitAnalysisResult.predictedNextDate}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Date Gaps Analysis */}
+                                            {twoDigitAnalysisResult.dateGaps.length > 0 && (
+                                                <div className="card">
+                                                    <h2 className="section-title">📊 Gap Analysis Between Occurrences</h2>
+                                                    <div style={{
+                                                        overflowX: 'auto'
+                                                    }}>
+                                                        <table style={{
+                                                            width: '100%',
+                                                            borderCollapse: 'collapse',
+                                                            fontSize: '0.95rem'
+                                                        }}>
+                                                            <thead>
+                                                                <tr style={{
+                                                                    background: '#f0f0f0',
+                                                                    borderBottom: '2px solid #667eea'
+                                                                }}>
+                                                                    <th style={{
+                                                                        padding: '12px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>From Date</th>
+                                                                    <th style={{
+                                                                        padding: '12px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>To Date</th>
+                                                                    <th style={{
+                                                                        padding: '12px',
+                                                                        textAlign: 'center',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>Gap (Days)</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {twoDigitAnalysisResult.dateGaps.map((gap, idx) => (
+                                                                    <tr key={idx} style={{
+                                                                        borderBottom: '1px solid #eee',
+                                                                        background: idx % 2 === 0 ? '#fafafa' : 'white'
+                                                                    }}>
+                                                                        <td style={{ padding: '12px' }}>
+                                                                            <strong>{gap.fromDate}</strong>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px' }}>
+                                                                            <strong>{gap.toDate}</strong>
+                                                                        </td>
+                                                                        <td style={{
+                                                                            padding: '12px',
+                                                                            textAlign: 'center',
+                                                                            background: gap.gap === twoDigitAnalysisResult.averageGap
+                                                                                ? '#ffe6e6'
+                                                                                : 'transparent',
+                                                                            borderRadius: '4px',
+                                                                            fontWeight: 'bold',
+                                                                            color: gap.gap === twoDigitAnalysisResult.averageGap
+                                                                                ? '#d32f2f'
+                                                                                : '#333'
+                                                                        }}>
+                                                                            {gap.gap}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* All Occurrences */}
+                                            <div className="card">
+                                                <h2 className="section-title">📋 All Occurrences in Last 16 Days</h2>
+                                                <button
+                                                    onClick={() => setShowTwoDigitDetails(!showTwoDigitDetails)}
+                                                    style={{
+                                                        padding: '10px 20px',
+                                                        background: '#667eea',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '5px',
+                                                        cursor: 'pointer',
+                                                        marginBottom: '15px',
+                                                        fontSize: '0.95rem'
+                                                    }}
+                                                >
+                                                    {showTwoDigitDetails ? '▲ Hide Details' : '▼ Show Details'}
+                                                </button>
+
+                                                {showTwoDigitDetails && (
+                                                    <div style={{
+                                                        overflowX: 'auto'
+                                                    }}>
+                                                        <table style={{
+                                                            width: '100%',
+                                                            borderCollapse: 'collapse',
+                                                            fontSize: '0.9rem'
+                                                        }}>
+                                                            <thead>
+                                                                <tr style={{
+                                                                    background: '#f0f0f0',
+                                                                    borderBottom: '2px solid #667eea'
+                                                                }}>
+                                                                    <th style={{
+                                                                        padding: '10px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>Date</th>
+                                                                    <th style={{
+                                                                        padding: '10px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>Number</th>
+                                                                    <th style={{
+                                                                        padding: '10px',
+                                                                        textAlign: 'left',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#667eea'
+                                                                    }}>Prize Slot</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {twoDigitAnalysisResult.occurrences.map((occ, idx) => (
+                                                                    <tr key={idx} style={{
+                                                                        borderBottom: '1px solid #eee',
+                                                                        background: idx % 2 === 0 ? '#fafafa' : 'white'
+                                                                    }}>
+                                                                        <td style={{ padding: '10px' }}>
+                                                                            <strong>{occ.date}</strong>
+                                                                        </td>
+                                                                        <td style={{
+                                                                            padding: '10px',
+                                                                            fontWeight: 'bold',
+                                                                            color: '#764ba2',
+                                                                            fontSize: '1.1rem'
+                                                                        }}>
+                                                                            {occ.number}
+                                                                        </td>
+                                                                        <td style={{
+                                                                            padding: '10px',
+                                                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                            color: 'white',
+                                                                            borderRadius: '4px',
+                                                                            fontWeight: '600'
+                                                                        }}>
+                                                                            ₹{occ.slot}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div >
             );
         };
 
         ReactDOM.render(<LotteryPatternAnalyzer />, document.getElementById('root'));
     </script>
 </body>
+
 </html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Slot Lottery Prediction Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .strategy-note {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .sample-format {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 15px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prediction-method {
+            background: #f8f9fa;
+            padding: 18px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .prediction-method:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .prediction-method h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.15em;
+        }
+
+        .prediction-method p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+        }
+
+        .predicted-numbers {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .predicted-number {
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .predicted-number:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .number-box {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .number-box:hover {
+            transform: scale(1.05);
+        }
+
+        .number-box .number {
+            font-size: 1.3em;
+        }
+
+        .number-box .freq {
+            font-size: 0.75em;
+            opacity: 0.8;
+        }
+
+        .hot { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .warm { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333; }
+        .cold { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); color: #333; }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pattern-insight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .digit-analysis {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .digit-box {
+            background: rgba(255,255,255,0.3);
+            padding: 12px 8px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .digit-box .digit {
+            font-size: 1.6em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .digit-box .count {
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .position-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .position-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .position-box h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .top-digits {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .top-digit {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .copy-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #45a049;
+        }
+
+        .recommendation-box {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendation-box h3 {
+            margin-bottom: 15px;
+        }
+
+        .buy-suggestion {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .prize-coverage {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .prize-tag {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Multi-Slot Lottery Prediction Analyzer</h1>
+            <p>Smart predictions to maximize your winning chances across ALL prize categories</p>
+        </div>
+
+        <div class="strategy-note">
+            <strong>💡 Strategy:</strong> This analyzer identifies numbers most likely to appear in ANY prize slot (1st, 2nd, 3rd, 5000, 2000, 1000, 500, 200, 100). Buy multiple predicted numbers to increase your chances of winning across different categories!
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Column: Upload & Stats -->
+            <div class="card">
+                <h2>📊 Upload Data</h2>
+                
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".json">
+                    <label for="fileInput" class="file-input-label">
+                        📁 Choose JSON File
+                    </label>
+                </div>
+                
+                <div class="sample-format">
+                    <strong>JSON Format:</strong>
+                    <pre>[{
+  "date": "26-10-2024",
+  "result": {
+    "1st": "1234",
+    "2nd": "5678",
+    "3rd": "9012",
+    "5000": ["3456", "7890"],
+    "2000": ["2345", "6789"],
+    "1000": ["0123", "4567"],
+    "500": ["8901", "2345"],
+    "200": ["6789", "0123"],
+    "100": ["4567", "8901"]
+  }
+}]</pre>
+                </div>
+
+                <button class="analyze-btn" id="analyzeBtn" disabled>
+                    🔍 Analyze & Predict
+                </button>
+
+                <div id="statsSection" style="display: none; margin-top: 20px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📈 Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="value" id="totalDraws">0</div>
+                            <div class="label">Total Draws</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="totalNumbers">0</div>
+                            <div class="label">All Numbers</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="uniqueNumbers">0</div>
+                            <div class="label">Unique</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Predictions -->
+            <div class="card">
+                <h2>🎯 Smart Predictions (Buy These Numbers!)</h2>
+                <div id="predictionsContent">
+                    <p style="text-align: center; color: #999; padding: 40px 20px;">
+                        Upload your lottery data to get number predictions
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tabs -->
+        <div class="card" id="analysisCard" style="display: none;">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('frequency')">🔥 Hot Numbers</button>
+                <button class="tab-btn" onclick="switchTab('patterns')">📊 Patterns</button>
+                <button class="tab-btn" onclick="switchTab('positions')">🎯 Digit Analysis</button>
+                <button class="tab-btn" onclick="switchTab('recommendations')">💰 Buy Strategy</button>
+            </div>
+
+            <div id="frequency" class="tab-content active">
+                <h3 style="color: #667eea; margin-bottom: 15px;">Top 100 Most Frequent Numbers</h3>
+                <div id="frequencyGrid" class="number-grid"></div>
+            </div>
+
+            <div id="patterns" class="tab-content">
+                <h3 style="color: #667eea; margin-bottom: 15px;">Pattern Analysis</h3>
+                <div id="patternsContent"></div>
+            </div>
+
+            <div id="positions" class="tab-content">
+                <h3 style="color: #667eea; margin-bottom: 15px;">Digit Position Analysis</h3>
+                <div id="positionsContent"></div>
+            </div>
+
+            <div id="recommendations" class="tab-content">
+                <h3 style="color: #667eea; margin-bottom: 15px;">Buying Strategy & Recommendations</h3>
+                <div id="recommendationsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lotteryData = null;
+        let analysisResults = null;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        lotteryData = JSON.parse(event.target.result);
+                        document.getElementById('analyzeBtn').disabled = false;
+                        document.getElementById('analyzeBtn').textContent = '🔍 Analyze & Predict (' + lotteryData.length + ' draws loaded)';
+                    } catch (error) {
+                        alert('Error parsing JSON: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            if (!lotteryData) return;
+            analyzeLotteryData(lotteryData);
+        });
+
+        function analyzeLotteryData(data) {
+            const allNumbers = [];
+            const numberFrequency = {};
+            const digitFrequency = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const positionDigits = [{}, {}, {}, {}];
+            const prizeAppearance = {};
+            const lastSeenDraw = {};
+            
+            data.forEach((draw, drawIndex) => {
+                const result = draw.result;
+                
+                // Process all prize categories
+                const allPrizes = ['1st', '2nd', '3rd', '5000', '2000', '1000', '500', '200', '100'];
+                
+                allPrizes.forEach(prize => {
+                    if (result[prize]) {
+                        const numbers = Array.isArray(result[prize]) ? result[prize] : [result[prize]];
+                        
+                        numbers.forEach(number => {
+                            if (!number) return;
+                            
+                            allNumbers.push(number);
+                            numberFrequency[number] = (numberFrequency[number] || 0) + 1;
+                            lastSeenDraw[number] = drawIndex;
+                            
+                            // Track which prizes this number appeared in
+                            if (!prizeAppearance[number]) {
+                                prizeAppearance[number] = new Set();
+                            }
+                            prizeAppearance[number].add(prize);
+                            
+                            // Analyze digits
+                            const digits = number.padStart(4, '0').split('');
+                            digits.forEach((digit, position) => {
+                                const d = parseInt(digit);
+                                digitFrequency[d]++;
+                                positionDigits[position][d] = (positionDigits[position][d] || 0) + 1;
+                            });
+                        });
+                    }
+                });
+            });
+
+            // Calculate gaps
+            const currentDrawIndex = data.length - 1;
+            const numberGaps = {};
+            Object.keys(numberFrequency).forEach(num => {
+                numberGaps[num] = currentDrawIndex - lastSeenDraw[num];
+            });
+
+            // Sort by frequency
+            const sortedByFrequency = Object.entries(numberFrequency)
+                .sort((a, b) => b[1] - a[1]);
+            
+            const sortedByGap = Object.entries(numberGaps)
+                .sort((a, b) => b[1] - a[1]);
+
+            // Top numbers
+            const hot = sortedByFrequency.slice(0, 50);
+            const cold = sortedByGap.slice(0, 30);
+            
+            // Numbers that appear in multiple prize categories
+            const multiPrize = Object.entries(prizeAppearance)
+                .filter(([num, prizes]) => prizes.size > 1)
+                .sort((a, b) => b[1].size - a[1].size)
+                .slice(0, 20);
+
+            // Position analysis
+            const topDigitsByPosition = positionDigits.map(posDigits => {
+                return Object.entries(posDigits)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([digit]) => digit);
+            });
+
+            analysisResults = {
+                totalDraws: data.length,
+                totalNumbers: allNumbers.length,
+                totalUniqueNumbers: Object.keys(numberFrequency).length,
+                numberFrequency,
+                digitFrequency,
+                positionDigits,
+                topDigitsByPosition,
+                prizeAppearance,
+                hot,
+                cold,
+                multiPrize,
+                numberGaps
+            };
+
+            displayResults(analysisResults, data);
+        }
+
+        function displayResults(results, data) {
+            document.getElementById('totalDraws').textContent = results.totalDraws;
+            document.getElementById('totalNumbers').textContent = results.totalNumbers;
+            document.getElementById('uniqueNumbers').textContent = results.totalUniqueNumbers;
+            document.getElementById('statsSection').style.display = 'block';
+
+            generatePredictions(results);
+            displayFrequencyAnalysis(results);
+            displayPatternInsights(results);
+            displayPositionAnalysis(results);
+            displayRecommendations(results);
+
+            document.getElementById('analysisCard').style.display = 'block';
+        }
+
+        function generatePredictions(results) {
+            const predictionsDiv = document.getElementById('predictionsContent');
+            predictionsDiv.innerHTML = '';
+
+            const predictions = [
+                {
+                    title: '🔥 Top 20 Hot Numbers',
+                    desc: 'Most frequently appearing across all prize categories',
+                    numbers: results.hot.slice(0, 20).map(([num]) => num)
+                },
+                {
+                    title: '🎯 Multi-Prize Winners',
+                    desc: 'Numbers that appeared in multiple prize slots',
+                    numbers: results.multiPrize.slice(0, 15).map(([num]) => num)
+                },
+                {
+                    title: '⏰ Overdue Numbers',
+                    desc: 'Due for appearance based on gap analysis',
+                    numbers: results.cold.slice(0, 15).map(([num]) => num)
+                },
+                {
+                    title: '📊 Position-Based Combos',
+                    desc: 'Generated from most common digits per position',
+                    numbers: generatePositionPredictions(results, 15)
+                },
+                {
+                    title: '🎲 Smart Random Mix',
+                    desc: 'Balanced selection from hot + overdue',
+                    numbers: generateSmartMix(results, 15)
+                },
+                {
+                    title: '💎 High Value Picks',
+                    desc: 'Numbers with highest frequency scores',
+                    numbers: results.hot.slice(0, 12).map(([num]) => num)
+                }
+            ];
+
+            predictions.forEach(pred => {
+                const div = document.createElement('div');
+                div.className = 'prediction-method';
+                div.innerHTML = `
+                    <h3>${pred.title}</h3>
+                    <p>${pred.desc}</p>
+                    <div class="predicted-numbers">
+                        ${pred.numbers.map(num => `<div class="predicted-number">${num}</div>`).join('')}
+                    </div>
+                    <button class="copy-btn" onclick="copyNumbers('${pred.numbers.join(', ')}')">📋 Copy Numbers</button>
+                `;
+                predictionsDiv.appendChild(div);
+            });
+        }
+
+        function generatePositionPredictions(results, count) {
+            const predictions = [];
+            const topDigits = results.topDigitsByPosition;
+            
+            for (let i = 0; i < count; i++) {
+                let number = '';
+                for (let pos = 0; pos < 4; pos++) {
+                    const digits = topDigits[pos];
+                    const idx = Math.floor(Math.random() * digits.length);
+                    number += digits[idx];
+                }
+                if (!predictions.includes(number)) {
+                    predictions.push(number);
+                }
+            }
+            return predictions;
+        }
+
+        function generateSmartMix(results, count) {
+            const hot = results.hot.slice(0, Math.floor(count * 0.6)).map(([num]) => num);
+            const cold = results.cold.slice(0, Math.floor(count * 0.4)).map(([num]) => num);
+            return [...hot, ...cold].slice(0, count);
+        }
+
+        function displayFrequencyAnalysis(results) {
+            const grid = document.getElementById('frequencyGrid');
+            grid.innerHTML = '';
+
+            const sorted = Object.entries(results.numberFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 100);
+
+            const maxFreq = sorted[0][1];
+            const minFreq = sorted[sorted.length - 1][1];
+
+            sorted.forEach(([number, freq]) => {
+                const box = document.createElement('div');
+                box.className = 'number-box';
+                
+                const ratio = (freq - minFreq) / (maxFreq - minFreq);
+                if (ratio > 0.7) box.classList.add('hot');
+                else if (ratio > 0.3) box.classList.add('warm');
+                else box.classList.add('cold');
+                
+                box.innerHTML = `
+                    <div class="number">${number}</div>
+                    <div class="freq">${freq}x</div>
+                `;
+                box.onclick = () => copyNumbers(number);
+                
+                grid.appendChild(box);
+            });
+        }
+
+        function displayPatternInsights(results) {
+            const content = document.getElementById('patternsContent');
+            content.innerHTML = '';
+
+            const digitInsight = document.createElement('div');
+            digitInsight.className = 'pattern-insight';
+            digitInsight.innerHTML = `
+                <h4>🔢 Digit Frequency (0-9)</h4>
+                <div class="digit-analysis">
+                    ${results.digitFrequency.map((count, digit) => 
+                        `<div class="digit-box">
+                            <span class="digit">${digit}</span>
+                            <span class="count">${count}x</span>
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+            content.appendChild(digitInsight);
+
+            const multiPrizeInsight = document.createElement('div');
+            multiPrizeInsight.className = 'pattern-insight';
+            multiPrizeInsight.innerHTML = `
+                <h4>🏆 Multi-Prize Appearance Numbers</h4>
+                <p style="margin-top: 10px;">These numbers appeared in multiple prize categories:</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    ${results.multiPrize.slice(0, 15).map(([num, prizes]) => 
+                        `<div style="background: rgba(255,255,255,0.3); padding: 10px 15px; border-radius: 8px;">
+                            <strong style="font-size: 1.2em;">${num}</strong><br>
+                            <small>${prizes.size} categories</small>
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+            content.appendChild(multiPrizeInsight);
+        }
+
+        function displayPositionAnalysis(results) {
+            const content = document.getElementById('positionsContent');
+            content.innerHTML = '';
+
+            const names = ['1st Digit', '2nd Digit', '3rd Digit', '4th Digit'];
+            const grid = document.createElement('div');
+            grid.className = 'position-analysis';
+            
+            results.positionDigits.forEach((posDigits, index) => {
+                const sorted = Object.entries(posDigits)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+                
+                const box = document.createElement('div');
+                box.className = 'position-box';
+                box.innerHTML = `
+                    <h5>${names[index]}</h5>
+                    <div class="top-digits">
+                        ${sorted.slice(0, 3).map(([digit, count]) => 
+                            `<div class="top-digit" title="${count}x">${digit}</div>`
+                        ).join('')}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.85em; color: #666;">
+                        ${sorted.map(([d, c]) => `${d}:${c}`).join(' · ')}
+                    </div>
+                `;
+                grid.appendChild(box);
+            });
+            
+            content.appendChild(grid);
+
+            const insight = document.createElement('div');
+            insight.className = 'pattern-insight';
+            insight.style.marginTop = '20px';
+            insight.innerHTML = `
+                <h4>💡 Best Digit Combination</h4>
+                <p style="font-size: 1.8em; margin-top: 10px; text-align: center;">
+                    ${results.topDigitsByPosition.map(d => d[0]).join('')}
+                </p>
+                <p style="margin-top: 10px;">This is the most statistically probable number based on position analysis</p>
+            `;
+            content.appendChild(insight);
+        }
+
+        function displayRecommendations(results) {
+            const content = document.getElementById('recommendationsContent');
+            content.innerHTML = '';
+
+            const recBox = document.createElement('div');
+            recBox.className = 'recommendation-box';
+            
+            const topNumbers = results.hot.slice(0, 30).map(([num]) => num);
+            
+            recBox.innerHTML = `
+                <h3>💰 Recommended Buying Strategy</h3>
+                <div class="buy-suggestion">
+                    <h4 style="margin-bottom: 10px;">🎯 Budget-Based Recommendations:</h4>
+                    <p><strong>Small Budget (5-10 numbers):</strong><br>
+                    Buy: ${topNumbers.slice(0, 10).join(', ')}</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Medium Budget (15-20 numbers):</strong><br>
+                    Buy: ${topNumbers.slice(0, 20).join(', ')}</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Large Budget (25-30 numbers):</strong><br>
+                    Buy: ${topNumbers.join(', ')}</p>
+                </div>
+                
+                <div class="buy-suggestion" style="margin-top: 15px;">
+                    <h4 style="margin-bottom: 10px;">📊 Strategy Tips:</h4>
+                    <p>✓ Hot numbers have proven frequent appearance</p>
+                    <p>✓ Mix hot + overdue for balanced approach</p>
+                    <p>✓ Multi-prize numbers increase win probability</p>
+                    <p>✓ More numbers = more chances across prize categories</p>
+                </div>
+                
+                <button class="copy-btn" onclick="copyNumbers('${topNumbers.join(', ')}')" 
+                        style="width: 100%; padding: 12px; margin-top: 15px; font-size: 1.1em;">
+                    📋 Copy All 30 Recommended Numbers
+                </button>
+            `;
+            
+            content.appendChild(recBox);
+        }
+
+        function copyNumbers(numbers) {
+            navigator.clipboard.writeText(numbers).then(() => {
+                alert('Numbers copied to clipboard!\n\n' + numbers);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+    </script>
+</body>
+</html>

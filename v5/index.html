@@ -590,7 +590,7 @@
             const [twoDigitInput, setTwoDigitInput] = useState('');
             const [twoDigitAnalysis, setTwoDigitAnalysis] = useState(null);
             const [showTwoDigitDetails, setShowTwoDigitDetails] = useState(false);
-
+            const [selectedParentBlock, setSelectedParentBlock] = useState('all');
             // Add this useMemo hook for two digit analysis
             const twoDigitAnalysisResult = useMemo(() => {
                 if (!parsedData || twoDigitInput.length !== 2) return null;

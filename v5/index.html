@@ -597,6 +597,11 @@
                 return analyzeTwoDigitPattern(parsedData, twoDigitInput);
             }, [parsedData, twoDigitInput]);
 
+            const [jsonInput, setJsonInput] = useState('');
+            const [result, setResult] = useState(null);
+            const [error, setError] = useState('');
+
+
             useEffect(() => {
                 const loadData = async () => {
                     try {
@@ -710,6 +715,8 @@
                     console.error('Error exporting results:', error);
                 }
             };
+
+
 
             const exportSuggestedNumbersAsPDF = () => {
                 if (!bulkPredictorResults || bulkPredictorResults.length === 0) return;
@@ -904,6 +911,84 @@
                 results.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
                 setBulkPredictorResults(results);
+            };
+            // SIMPLE COMPARISON FUNCTION - Just extract all numbers and compare
+            const compareAllNumbers = (jsonResult) => {
+                if (!bulkPredictorResults || bulkPredictorResults.length === 0) {
+                    alert("Please click in order from 'Load All Numbers' first, Then 'Analyze All Numbers'. Finally Click the Today's comparison button")
+                    return
+                };
+
+                let suggestedNos = []
+                const allNumbers = [];
+                try {
+                    bulkPredictorResults.forEach(result => {
+                        suggestedNos.push(result?.suggestedNumber);
+                    });
+
+
+
+                    // Extract all numbers from result regardless of slot
+                    const recursiveExtract = (obj) => {
+                        if (typeof obj === 'string') {
+                            const normalized = obj.padStart(4, '0');
+                            if (/^\d{4}$/.test(normalized)) {
+                                allNumbers.push(normalized);
+                            }
+                        } else if (Array.isArray(obj)) {
+                            obj.forEach(item => recursiveExtract(item));
+                        } else if (typeof obj === 'object' && obj !== null) {
+                            Object.values(obj).forEach(item => recursiveExtract(item));
+                        }
+                    };
+
+                    recursiveExtract(jsonResult);
+
+                    // Remove duplicates
+                    const uniqueNumbers = [...new Set(allNumbers)];
+
+                    // Compare with Suggested Numbers
+                    const matched = [];
+                    const notMatched = [];
+
+                    uniqueNumbers.forEach(num => {
+                        if (suggestedNos.includes(num)) {
+                            matched.push(num);
+                        } else {
+                            notMatched.push(num);
+                        }
+                    });
+
+                    return {
+                        allNumbers: uniqueNumbers,
+                        matched: matched.sort(),
+                        notMatched: notMatched.sort(),
+                        totalNumbers: uniqueNumbers.length,
+                        matchedCount: matched.length,
+                        notMatchedCount: notMatched.length,
+                        matchPercentage: uniqueNumbers.length > 0 ? ((matched.length / uniqueNumbers.length) * 100).toFixed(2) : 0
+                    };
+                }
+                catch (err) {
+                    console.log(err)
+                }
+
+            };
+            const handleAnalyze = () => {
+                try {
+                    setError('');
+                    const parsed = JSON.parse(jsonInput);
+
+                    if (!parsed.result) {
+                        setError('❌ Invalid format: JSON must contain a "result" object');
+                        return;
+                    }
+
+                    const comparison = compareAllNumbers(parsed.result);
+                    setResult(comparison);
+                } catch (e) {
+                    setError(`❌ JSON Parse Error: ${e.message}`);
+                }
             };
 
             if (loading) return (
@@ -1245,6 +1330,18 @@
                                     >
                                         📋 Load All Numbers
                                     </button>
+                                    <button
+                                        className="analyze-btn"
+                                        onClick={() => {
+                                            if (!bulkPredictorResults || bulkPredictorResults.length === 0) {
+                                                alert("Please click in order from 'Load All Numbers' first, Then 'Analyze All Numbers'. Finally Click the Today's comparison button")
+                                                return
+                                            }
+                                            else setView('jsonComparison')
+                                      }}
+                                    >
+                                        📋 Today's Result Comparison
+                                    </button>
                                     {bulkPredictorResults && bulkPredictorResults.length > 0 && (
                                         <button className="export-btn" onClick={exportBulkPredictorResults}>
                                             Export Results (CSV)
@@ -1262,6 +1359,7 @@
                                             📄 Export Suggested Numbers (PDF)
                                         </button>
                                     )}
+
                                 </div>
                             </div>
 
@@ -1510,8 +1608,97 @@
                                     </div>
                                 </div>
                             )}
+
                         </div>
                     )}
+
+                    {view === "jsonComparison" && bulkPredictorResults && bulkPredictorResults.length > 0 &&
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: '#333', fontSize: '1.1rem' }}>
+                                Paste Your Lottery Result (JSON):
+                            </label>
+                            <textarea
+                                className="json-textarea"
+                                value={jsonInput}
+                                onChange={(e) => setJsonInput(e.target.value)}
+                                placeholder="Paste JSON data of Today's Result here."
+                            />
+
+                            <div className="button-group">
+                                <button className="btn btn-primary" onClick={handleAnalyze}>
+                                    ✓ Analyze & Compare
+                                </button>
+                                <button className="btn btn-secondary" onClick={() => {
+                                    setJsonInput('');
+                                    setResult(null);
+                                    setError('');
+                                }}>
+                                    🗑️ Clear
+                                </button>
+                            </div>
+
+                            {error && <div className="error-msg">{error}</div>}
+
+                            {result && (
+                                <div className="success-msg">
+                                    ✅ Analysis Complete | Total Numbers: <strong>{result.totalNumbers}</strong> | Common Matches: <strong>{result.matchedCount}</strong> | Match Rate: <strong>{result.matchPercentage}%</strong>
+                                </div>
+                            )}
+
+                            {result && (
+                                <div className="results-section">
+                                    <h2>📊 Results</h2>
+
+                                    <div className="stats-grid">
+                                        <div className="stat-box">
+                                            <div className="stat-label">Total Numbers Found</div>
+                                            <div className="stat-value">{result.totalNumbers}</div>
+                                        </div>
+                                        <div className="stat-box">
+                                            <div className="stat-label">✓ Common Matches</div>
+                                            <div className="stat-value" style={{ color: '#27ae60' }}>{result.matchedCount}</div>
+                                        </div>
+                                        <div className="stat-box">
+                                            <div className="stat-label">✗ Not in Database</div>
+                                            <div className="stat-value" style={{ color: '#e74c3c' }}>{result.notMatchedCount}</div>
+                                        </div>
+                                        <div className="stat-box">
+                                            <div className="stat-label">Match Percentage</div>
+                                            <div className="stat-value" style={{ color: '#f39c12' }}>{result.matchPercentage}%</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="results-container">
+                                        <div className="numbers-display">
+                                            <h3>✓ Common Numbers Found ({result.matchedCount})</h3>
+                                            {result.matched.length > 0 ? (
+                                                <div className="matched-grid">
+                                                    {result.matched.map((num, idx) => (
+                                                        <div key={idx} className="matched-num">{num}</div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-results">No common numbers found</div>
+                                            )}
+                                        </div>
+
+                                        <div className="numbers-display">
+                                            <h3>✗ Not in Database ({result.notMatchedCount})</h3>
+                                            {result.notMatched.length > 0 ? (
+                                                <div className="matched-grid">
+                                                    {result.notMatched.map((num, idx) => (
+                                                        <div key={idx} className="not-matched-num">{num}</div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-results">All numbers match the Suggested Numbers!</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    }
                     {view === 'twoDigitAnalysis' && (
                         <div>
                             <div className="card">
